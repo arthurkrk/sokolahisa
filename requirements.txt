@@ -1,0 +1,7 @@
+streamlit
+appdirs
+matplotlib
+plotly
+pandas
+datetime
+yfinance
