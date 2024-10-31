@@ -3,10 +3,6 @@ import pandas as pd
 import math
 from pathlib import Path
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='Share Prices',
-# Draw the actual page
 # -----------------------------------------------------------------------------
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -34,7 +30,6 @@ with col2:
 data = yf.download(ticker, start_date, end_date)
 
 st.title=f"{ticker} Stock Price"
-st.eps_trend
-
+st.write(data.info())
 st.line_chart(data['Close'],x_label="Date",y_label="Close")
 # -----------------------------------------------------------------------------
