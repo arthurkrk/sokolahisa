@@ -21,7 +21,7 @@ sidebar = st.sidebar
 sidebar.header("Stock Price App")
 col1, col2 = st.columns(2)
 with col1:
-    ticker = st.text_input("Ticker", "AAPL")
+    ticker = st.text_input("Ticker")
 with col2:
     start_date = st.date_input("Start Date", datetime.date(2000, 1, 1))
     end_date = st.date_input("End Date", datetime.date.today())
