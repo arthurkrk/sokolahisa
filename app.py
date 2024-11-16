@@ -52,6 +52,7 @@ tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Risk Asses
 with tabs[0]:
     st.header("Home")
     st.write("This web app offers valuable insights into stock market trends, empowering you to make smarter, data-driven investment choices.")
+    st.write("All you need to know at your fingertips.")
     st.image(
         "https://st3.depositphotos.com/3108485/32120/i/600/depositphotos_321205098-stock-photo-businessman-plan-graph-growth-and.jpg",
         )
@@ -470,7 +471,7 @@ with tabs[5]:
             return None, None
 
     # App layout and styling
-    st.title("Stock News Fetcher")
+    st.title("News Fetcher for Selected Stock")
     ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")  # Unique key
 
     if ticker_symbol_news:
