@@ -41,7 +41,7 @@ def render_footer():
 # Page Title
 render_header("S&P 500 Stock Analysis")
 # Create tabs
-tabs = st.tabs(["Home", "Stock Analysis", "Stock Comparison", "Stock News", "Contacts"])
+tabs = st.tabs(["Home", "Stock Analysis", "Stock Comparison", "Stock News", "Contacts", "Test"])
 # Tab: Home
 with tabs[0]:
     st.header("Home")
