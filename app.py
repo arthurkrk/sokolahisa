@@ -129,201 +129,257 @@ with tabs[1]:
 
     if ticker:
         analyze_stock_fundamentals(ticker)
-
 # Technical Analysis
 with tabs[2]:
     st.header("Stock Information")
-    st.write("Select one stock to analyze and visualize.")
-
-    # App title and description
-    st.title("Enhanced Stock Information Web App")
-    st.write("Enter a ticker symbol to retrieve and visualize stock information interactively.")
-
-    start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
-    end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
-
+    st.write("Analyze and visualize stock performance with indicators and recommendations.")
     # Ticker input
-    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+    ticker_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+    # Date slicer
+    st.write("### Select Date Range")
+    today = datetime.now()
+    date_range = st.slider(
+        "Drag to select the range:",
+        min_value=today - timedelta(days=5 * 365),
+        max_value=today,
+        value=(today - timedelta(days=365), today),
+        format="YYYY-MM-DD",
+    )
+    start_date, end_date = date_range
 
     # Recommendation toggle
     show_recommendation = st.checkbox("Show Recommendation", key="show_recommendation")
 
-    # Chart type selection
-    chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
-
-    # Fetch data and ensure valid date range
-    if start_date > end_date:
-        st.error("End date must be after the start date. Please adjust your dates.")
-    elif ticker_symbol:
+    # Indicator toggles
+    st.write("### Select Indicators")
+    indicators = {
+        "SMA_0_50": st.checkbox("SMA (0-50)", key="show_sma_0_50"),
+        "SMA_50_100": st.checkbox("SMA (50-100)", key="show_sma_50_100"),
+        "RSI": st.checkbox("Relative Strength Index (RSI)", key="show_rsi"),
+        "MACD": st.checkbox("Moving Average Convergence Divergence (MACD)", key="show_macd"),
+        "VWAP": st.checkbox("Volume Weighted Average Price (VWAP)", key="show_vwap"),
+    }
+    if ticker_symbol:
         try:
-            # Fetch stock data using yfinance
+            # Fetch stock data
             stock = yf.Ticker(ticker_symbol)
             data = stock.history(start=start_date, end=end_date)
 
             if data.empty:
-                st.warning(f"No data found for {ticker_symbol} in the selected date range.")
+                st.warning(f"No data found for {ticker_symbol} in the selected range.")
             else:
                 # Display current price
                 current_price = data['Close'].iloc[-1]
                 price_change = current_price - data['Close'].iloc[-2]
                 percentage_change = (price_change / data['Close'].iloc[-2]) * 100
-                price_class = "positive" if price_change > 0 else "negative"
 
                 st.markdown(
-                    f"### Current Price: **{current_price:.2f} USD** "
-                    f"({price_change:+.2f} / {percentage_change:+.2f}%)"
+                    f"### Current Price: **${current_price:.2f}** "
+                    f"({price_change:+.2f}, {percentage_change:+.2f}%)"
                 )
-                
-                # Indicator toggles
-                st.write("### Select Indicators")
-                show_sma = st.checkbox("Simple Moving Average (SMA)")
-                show_ema = st.checkbox("Exponential Moving Average (EMA)")
-                show_rsi = st.checkbox("Relative Strength Index (RSI)")
-                show_macd = st.checkbox("Moving Average Convergence Divergence (MACD)")
-                show_vwap = st.checkbox("Volume Weighted Average Price (VWAP)")
 
-                # Initialize buy signal count
+                # Add selected indicators
                 buy_signals = 0
                 total_indicators = 0
 
-                # Simple Moving Average (SMA)
-                if show_sma:
-                    sma_period = st.sidebar.slider("SMA Period", 5, 100, 20)
-                    data['SMA'] = data['Close'].rolling(window=sma_period).mean()
-                    st.line_chart(data[['Close', 'SMA']])
-                    if data['Close'].iloc[-1] > data['SMA'].iloc[-1]:
+                # Create Plotly figure for all charts
+                fig = go.Figure()
+
+                # Line chart for close price
+                fig.add_trace(go.Scatter(x=data.index, y=data['Close'], mode='lines', name="Close Price"))
+
+                # Moving Averages (SMA)
+                if indicators["SMA_0_50"]:
+                    sma_0_50 = st.slider("SMA (0-50) Period", 1, 50, 20, key="sma_0_50_period")
+                    data['SMA_0_50'] = data['Close'].rolling(window=sma_0_50).mean()
+                    fig.add_trace(go.Scatter(x=data.index, y=data['SMA_0_50'], mode='lines', name="SMA (0-50)"))
+                    if data['Close'].iloc[-1] > data['SMA_0_50'].iloc[-1]:
                         buy_signals += 1
                     total_indicators += 1
 
-                # Exponential Moving Average (EMA)
-                if show_ema:
-                    ema_period = st.sidebar.slider("EMA Period", 5, 100, 20)
-                    data['EMA'] = data['Close'].ewm(span=ema_period, adjust=False).mean()
-                    if data['Close'].iloc[-1] > data['EMA'].iloc[-1]:
+                if indicators["SMA_50_100"]:
+                    sma_50_100 = st.slider("SMA (50-100) Period", 50, 100, 75, key="sma_50_100_period")
+                    data['SMA_50_100'] = data['Close'].rolling(window=sma_50_100).mean()
+                    fig.add_trace(go.Scatter(x=data.index, y=data['SMA_50_100'], mode='lines', name="SMA (50-100)"))
+                    if data['Close'].iloc[-1] > data['SMA_50_100'].iloc[-1]:
                         buy_signals += 1
                     total_indicators += 1
 
                 # Relative Strength Index (RSI)
-                if show_rsi:
-                    rsi_period = st.sidebar.slider("RSI Period", 5, 50, 14)
-                    delta = data['Close'].diff(1)
+                if indicators["RSI"]:
+                    rsi_period = st.slider("RSI Period", 5, 50, 14, key="rsi_period")
+                    delta = data['Close'].diff()
                     gain = delta.where(delta > 0, 0)
                     loss = -delta.where(delta < 0, 0)
                     avg_gain = gain.rolling(window=rsi_period).mean()
                     avg_loss = loss.rolling(window=rsi_period).mean()
                     rs = avg_gain / avg_loss
                     data['RSI'] = 100 - (100 / (1 + rs))
+                    fig.add_trace(go.Scatter(x=data.index, y=data['RSI'], mode='lines', name="RSI", yaxis="y2"))
                     if data['RSI'].iloc[-1] < 30:
                         buy_signals += 1
                     total_indicators += 1
 
-                # Determine Buy or Sell Recommendation
+                # Moving Average Convergence Divergence (MACD)
+                if indicators["MACD"]:
+                    short_span = st.slider("MACD Short Span", 5, 50, 12, key="macd_short")
+                    long_span = st.slider("MACD Long Span", 5, 100, 26, key="macd_long")
+                    signal_span = st.slider("MACD Signal Span", 5, 20, 9, key="macd_signal")
+                    data['MACD'] = data['Close'].ewm(span=short_span).mean() - data['Close'].ewm(span=long_span).mean()
+                    data['Signal Line'] = data['MACD'].ewm(span=signal_span).mean()
+                    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], mode='lines', name="MACD", yaxis="y3"))
+                    fig.add_trace(go.Scatter(x=data.index, y=data['Signal Line'], mode='lines', name="Signal Line", yaxis="y3"))
+                    if data['MACD'].iloc[-1] > data['Signal Line'].iloc[-1]:
+                        buy_signals += 1
+                    total_indicators += 1
+
+                # Volume Weighted Average Price (VWAP)
+                if indicators["VWAP"]:
+                    data['VWAP'] = (data['Close'] * data['Volume']).cumsum() / data['Volume'].cumsum()
+                    fig.add_trace(go.Scatter(x=data.index, y=data['VWAP'], mode='lines', name="VWAP"))
+                    if data['Close'].iloc[-1] > data['VWAP'].iloc[-1]:
+                        buy_signals += 1
+                    total_indicators += 1
+
+                # Show recommendation summary
                 if show_recommendation:
                     st.write("### Recommendation Summary")
                     st.write(f"Total Indicators: {total_indicators}")
                     st.write(f"Buy Signals: {buy_signals}")
                     st.write(f"Sell Signals: {total_indicators - buy_signals}")
-
                     if buy_signals > total_indicators / 2:
-                        st.success("**Overall Recommendation: Buy**")
+                        st.success("**Recommendation: Buy**")
                     else:
-                        st.warning("**Overall Recommendation: Sell**")
+                        st.warning("**Recommendation: Sell**")
 
-                # Plot stock price
-                st.subheader(f"{ticker_symbol} Price Chart")
-                fig = go.Figure()
-
-                if chart_type == "Line Chart":
-                    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], mode='lines', name="Close Price"))
-                elif chart_type == "Candlestick Chart":
-                    fig.add_trace(go.Candlestick(
-                        x=data.index,
-                        open=data['Open'],
-                        high=data['High'],
-                        low=data['Low'],
-                        close=data['Close'],
-                        name="Candlestick"
-                    ))
-
+                # Update layout to display multiple y-axes for different indicators
                 fig.update_layout(
-                    title=f"{ticker_symbol} Price Chart",
+                    title=f"{ticker_symbol} Price and Indicators",
                     xaxis_title="Date",
                     yaxis_title="Price (USD)",
-                    xaxis_rangeslider_visible=(chart_type == "Candlestick Chart")
+                    yaxis2=dict(
+                        title="RSI",
+                        overlaying="y",
+                        side="right"
+                    ),
+                    yaxis3=dict(
+                        title="MACD",
+                        overlaying="y",
+                        side="right",
+                        position=0.85
+                    ),
+                    legend=dict(x=0, y=1.1, orientation="h")
                 )
+
                 st.plotly_chart(fig)
 
         except Exception as e:
-            st.error(f"Could not retrieve data for {ticker_symbol}. Error: {e}")
-
+            st.error(f"Failed to retrieve data for {ticker_symbol}. Error: {e}")
 
 # Tab: Comparison
 with tabs[3]:
     st.header("Comparison")
-    st.write("This is the Visualization page. Show your plots here.")
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from datetime import date, timedelta
-    import yfinance as yf
-    import pandas as pd
-    # Title for date and stock selection
-    st.title('Select Date and Stocks')
-    # Date range selection
-    today = date.today()
-    min_date = today - timedelta(days=365 * 5)
-    max_date = today
-    date_range = st.slider(
-        "Select Date Range",
-        min_value=min_date,
-        max_value=max_date,
-        value=(today - timedelta(days=365), today)
+    st.write("Compare stocks based on fundamental and technical analysis.")
+
+    # Function to fetch fundamental data
+    def get_fundamental_data(ticker):
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            return {
+                "Ticker": ticker,
+                "Market Cap (Billion)": info.get('marketCap', 0) / 1e9,
+                "Trailing P/E Ratio": info.get('trailingPE', 'N/A'),
+                "Forward P/E Ratio": info.get('forwardPE', 'N/A'),
+                "Price-to-Book Ratio": info.get('priceToBook', 'N/A'),
+                "Dividend Yield (%)": info.get('dividendYield', 0) * 100,
+                "Earnings Growth (%)": info.get('earningsGrowth', 'N/A'),
+                "Revenue Growth (%)": info.get('revenueGrowth', 'N/A'),
+                "Debt-to-Equity Ratio": info.get('debtToEquity', 'N/A'),
+                "Free Cash Flow (Billion)": info.get('freeCashflow', 0) / 1e9,
+            }
+        except Exception as e:
+            st.error(f"Error fetching data for {ticker}: {e}")
+            return None
+
+    # Stock Selection
+    available_tickers = [
+        'AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'BRK.B',
+        'KO', 'UNH', 'XOM', 'LLY', 'JPM', 'JNJ', 'V', 'PG', 'MA', 'AVGO', 'HD',
+        'CVX', 'MRK', 'ABBV', 'COST', 'PEP', 'ADBE'
+    ]
+    selected_tickers = st.multiselect(
+        "Select Stocks for Analysis (both Fundamental and Technical):",
+        available_tickers,
+        default=['AAPL', 'MSFT', 'TSLA']
     )
-    sdate, edate = date_range
-    # Stock selection
-    symbols = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA", "NVDA", "TESLA","BRK.B","META","KO","UNH","XOM","LLY","JPM","JNJ","V","PG","MA","AVGO","HD","CVX","MRK","ABBV","COST","PEP","ADBE"]
-    selected_stocks = st.multiselect(
-        "Select Stocks", symbols, default=["AAPL"]
-    )
-    # Stock comparison
-    st.title("Comparison")
-    if selected_stocks:
-        # Fetch stock data
-        data = yf.download(
-            selected_stocks,
-            start=sdate,
-            end=edate,
-            interval="1d",
-            auto_adjust=True,
-            prepost=True
-        )
-        if data.empty:
-            st.error("Failed to fetch historical data or no data available for the selected period.")
+
+    if selected_tickers:
+        # Fundamental Analysis
+        st.subheader("Fundamental Analysis")
+        fundamental_data = [get_fundamental_data(ticker) for ticker in selected_tickers if get_fundamental_data(ticker)]
+        if fundamental_data:
+            st.dataframe(pd.DataFrame(fundamental_data), use_container_width=True)
         else:
-            # Filter data for the selected date range
-            filtered_data = data['Close'][selected_stocks]
-            sdate_utc = pd.to_datetime(sdate).tz_localize('UTC')
-            edate_utc = pd.to_datetime(edate).tz_localize('UTC')
-            filtered_data = filtered_data[(filtered_data.index >= sdate_utc) & (filtered_data.index <= edate_utc)]
-            if not filtered_data.empty:
-                # Reset index to create a 'Date' column
-                filtered_data = filtered_data.reset_index()
-                filtered_data = filtered_data.rename(columns={'index': 'Date'})
-                # Plot the data
-                st.line_chart(
-                    filtered_data,
-                    x="Date",
-                    y=selected_stocks[0] if len(selected_stocks) == 1 else selected_stocks
-                )
-            else:
-                st.warning("No data available for the selected stock(s) and date range.")
+            st.warning("No valid fundamental data available.")
+
+        # Technical Analysis
+        st.subheader("Technical Analysis")
+        today, min_date = date.today(), date.today() - timedelta(days=5 * 365)
+        date_range = st.slider("Select Date Range", min_date, today, (today - timedelta(days=365), today))
+        sdate, edate = date_range
+
+        # Fetch historical data
+        data = yf.download(selected_tickers, start=sdate, end=edate, interval="1d", auto_adjust=True)
+        if not data.empty:
+            for ticker in selected_tickers:
+                st.write(f"### {ticker}")
+
+                # Fetch stock's closing price
+                stock_data = data['Close'][ticker]
+                df = pd.DataFrame(stock_data).rename(columns={ticker: 'Close'})
+
+                # Add moving averages
+                df['SMA 50'] = stock_data.rolling(window=50).mean()
+                df['SMA 100'] = stock_data.rolling(window=100).mean()
+
+                # Plot stock price with moving averages
+                st.line_chart(df)
+
+        else:
+            st.error("No historical data available for the selected period.")
     else:
         st.warning("Please select at least one stock.")
-
-# Tab: News
+# News
 with tabs[4]:
     st.header("News")
     st.write("Stay updated with the latest news on your selected stock.")
-
-
+# Technical Analysis
+with tabs[5]:
+    st.title("Contact Us")
+    # University Information
+    st.write("""### International University of Japan  
+             **Address:** 777 Kokusai-cho, Minami Uonuma-shi, Niigata 949-7277, Japan  
+             **Phone:** +81 (0) 25-779-1111  
+             **FAX:** +81 (0) 25-779-4441  
+             """)
+    # Developers' Information
+    st.write("### Meet Our Developers")
+    developers = [
+            {"name": "Arthur Kariuki", "email": "a.nj58@iuj.ac.jp", "github": "https://github.com/arthurkrk"},
+            {"name": "Fahad Mirza", "email": "fmmirza@iuj.ac.jp", "github": "https://github.com/fmmirza7"},
+            {"name": "Merwan Limam", "email": "l.merwan@iuj.ac.jp", "github": "https://github.com/Lmerwan"},
+            {"name": "Adama Cisse", "email": "acisse@iuj.ac.jp", "github": "https://github.com/adama6cpython"},
+            {"name": "Ibra Ndiaye", "email": "ibrahim7@iuj.ac.jp", "github": "https://github.com/rabihimo"},
+            {"name": "Trymore Musasiri", "email": "tmusariri@iuj.ac.jp", "github": "https://github.com"},
+            ]
+    for dev in developers:
+        st.write(f"- **{dev['name']}**")
+        st.write(f"  - Email: [{dev['email']}](mailto:{dev['email']})")
+        st.write(f"  - GitHub: [{dev['github']}]({dev['github']})")
+    # Feedback Button
+    st.write("### Rate Your Experience")
+    if st.button("Rate Us"):
+        st.success("Thank you for your feedback!")
 # Render the footer on all pages
 render_footer()
