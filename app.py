@@ -245,7 +245,7 @@ with tabs[2]:
     )
     sdate, edate = date_range
     # Stock selection
-    symbols = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA", "NVDA", "TESLA","BABA","KO","META"]
+    symbols = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA", "NVDA", "TESLA","BRK.B","META","UNH","XOM","LLY","JPM","JNJ","V","PG","MA","AVGO","HD","CVX","MRK","ABBV","COST","PEP","ADBE"]
     selected_stocks = st.multiselect(
         "Select Stocks", symbols, default=["AAPL"]
     )
