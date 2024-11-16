@@ -59,12 +59,6 @@ with tabs[0]:
 with tabs[1]:
     st.header("Fundamental Analysis")
     st.write("In this section we analyse a firm's prospects based on broader aspects of fundamental analysis.")
-    stock = yf.Ticker(ticker)
-    info = stock.info
-    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
-    st.write("Fundamental Analysis for {ticker}")
-    st.write("-" * 50)
-    
 
 
 # Tab: Stock Information
