@@ -7,7 +7,6 @@ import math
 from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
-import feedparser
 
 # Specify title and logo for the webpage.
 # Set up your web app
@@ -47,7 +46,7 @@ render_header("S&P 500 Industry Analysis")
 # Create tabs
 tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Comparison", "News", "Contacts"])
 
-# Tab: Home
+# Home
 with tabs[0]:
     st.header("Home")
     st.write("Our web app provides insights into stock market trends and helps in making data-driven investment decisions.")
@@ -55,13 +54,83 @@ with tabs[0]:
         "https://st3.depositphotos.com/3108485/32120/i/600/depositphotos_321205098-stock-photo-businessman-plan-graph-growth-and.jpg",
         caption="Placeholder image for the Home page."
     )
-# Tab: Stock Information
+# Fundamental Analysis
 with tabs[1]:
     st.header("Fundamental Analysis")
-    st.write("In this section we analyse a firm's prospects based on broader aspects of fundamental analysis.")
+    st.write("Analyze a firm's prospects using fundamental analysis. Enter a stock ticker below:")
 
+    ticker = st.text_input("Stock Ticker (e.g., AAPL, MSFT):", value="AAPL")
 
-# Tab: Stock Information
+    def analyze_stock_fundamentals(ticker):
+        """Perform fundamental analysis for the given stock ticker."""
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            st.subheader(f"Fundamental Analysis for {ticker.upper()}")
+           # Company Overview
+            st.write("### Company Overview")
+            st.write(f"**Name:** {info.get('longName', 'N/A')}")
+            st.write(f"**Sector:** {info.get('sector', 'N/A')}")
+            st.write(f"**Industry:** {info.get('industry', 'N/A')}")
+            st.write(f"**Website:** [Visit Website]({info.get('website', '#')})")
+            st.markdown("---")
+
+            # Key Financial Metrics
+            market_cap = info.get('marketCap', 0) / 1e9
+            pe_ratio = info.get('trailingPE', 'N/A')
+            pb_ratio = info.get('priceToBook', 'N/A')
+            dividend_yield = info.get('dividendYield', 0) * 100
+            forward_pe = info.get('forwardPE', 'N/A')
+            st.write("### Key Financial Metrics")
+            st.write(f"**Market Cap:** ${market_cap:.2f} Billion")
+            st.write(f"**Trailing P/E Ratio:** {pe_ratio}")
+            st.write(f"**Forward P/E Ratio:** {forward_pe}")
+            st.write(f"**Price-to-Book Ratio:** {pb_ratio}")
+            st.write(f"**Dividend Yield:** {dividend_yield:.2f}%")
+
+            st.markdown("---")         
+            # Earnings and Growth
+            earnings_growth = info.get('earningsGrowth', 'N/A')
+            revenue_growth = info.get('revenueGrowth', 'N/A')
+            st.write("### Earnings and Growth")
+            st.write(f"**Earnings Growth:** {earnings_growth}")
+            st.write(f"**Revenue Growth:** {revenue_growth}")
+            st.markdown("---")
+
+            # Debt Ratios
+            total_debt = info.get('totalDebt', 0)
+            free_cashflow = info.get('freeCashflow', 0)
+            debt_to_equity = info.get('debtToEquity', 'N/A')
+            st.write("### Debt Ratios")
+            st.write(f"**Total Debt:** ${total_debt:,}")
+            st.write(f"**Free Cash Flow:** ${free_cashflow:,}")
+            st.write(f"**Debt-to-Equity Ratio:** {debt_to_equity}")             
+            st.markdown("---")
+            # Valuation Analysis
+            if pe_ratio != 'N/A' and pb_ratio != 'N/A':
+                if pe_ratio < 15 and pb_ratio < 1.5:
+                    st.success("The stock appears **undervalued**.")
+                elif pe_ratio > 25 or pb_ratio > 3:
+                    st.warning("The stock appears **overvalued**.")
+                else:
+                    st.info("The stock has a **neutral valuation**.")
+            else:
+                st.error("Insufficient data to determine valuation.")
+            st.markdown("---")
+
+            # Dividend Analysis
+            if dividend_yield > 0:
+                st.write(f"The stock offers a **dividend yield of {dividend_yield:.2f}%**.")
+            else:
+                st.write("The stock does not pay a dividend.")
+
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
+    if ticker:
+        analyze_stock_fundamentals(ticker)
+
+# Technical Analysis
 with tabs[2]:
     st.header("Stock Information")
     st.write("Select one stock to analyze and visualize.")
@@ -255,121 +324,6 @@ with tabs[4]:
     st.header("News")
     st.write("Stay updated with the latest news on your selected stock.")
 
-    # Function to extract news from Google News RSS
-    def extract_news_from_google_rss(ticker):
-        """Fetch news articles for a given stock ticker using Google News RSS."""
-        url = f"https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en"
-        feed = feedparser.parse(url)
-        news_articles = []
-        for entry in feed.entries[:15]:  # Limit to the latest 15 articles
-            published_date = datetime(*entry.published_parsed[:6])  # Convert to datetime
-            news_articles.append({"title": entry.title, "url": entry.link, "date": published_date})
-        return news_articles
-
-    # Function to fetch and preprocess text
-    def fetch_article_content(url):
-        """Fetch article content using BeautifulSoup."""
-        try:
-            response = requests.get(url)
-            soup = BeautifulSoup(response.content, "html.parser")
-            headline = soup.title.string if soup.title else "No headline"
-            paragraphs = soup.find_all("p")
-            content = " ".join([para.get_text() for para in paragraphs])
-            return headline, content
-        except Exception as e:
-            return None, None
-
-    # App layout and styling
-    st.title("Stock News Fetcher")
-    ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")  # Unique key
-
-    if ticker_symbol_news:
-        try:
-            # Fetch news for the given ticker automatically
-            news = extract_news_from_google_rss(ticker_symbol_news)
-            if news:
-                st.subheader(f"Latest News for {ticker_symbol_news.upper()}")
-                for article in news:
-                    st.write(f"**{article['title']}**")
-                    st.write(f"[Read more]({article['url']}) - {article['date'].strftime('%Y-%m-%d %H:%M:%S')}")
-                    st.write("---")
-            else:
-                st.warning("No news articles found for this ticker.")
-        except Exception as e:
-            st.error(f"An error occurred while fetching news: {e}")
-    else:
-        st.info("Enter a stock ticker above to fetch the latest news.")
-
-# Tab: Contact Us
-with tabs[5]:
-    st.header("Contact Us")
-    st.write("We'd love to hear your feedback! Please use the form below.")
-
-    # Set up SQLite database
-    def create_feedback_table():
-        conn = sqlite3.connect("feedback.db")
-        c = conn.cursor()
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS feedback (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT,
-                email TEXT,
-                message TEXT,
-                submitted_at TIMESTAMP
-            )
-        ''')
-        conn.commit()
-        conn.close()
-
-    def insert_feedback(name, email, message):
-        conn = sqlite3.connect("feedback.db")
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO feedback (name, email, message, submitted_at)
-            VALUES (?, ?, ?, ?)
-        ''', (name, email, message, datetime.now()))  # Use datetime.now() correctly
-        conn.commit()
-        conn.close()
-
-    def fetch_all_feedback():
-        conn = sqlite3.connect("feedback.db")
-        c = conn.cursor()
-        c.execute('SELECT * FROM feedback')
-        rows = c.fetchall()
-        conn.close()
-        return rows
-
-    # Initialize the database
-    create_feedback_table()
-
-    # Feedback form
-    with st.form("feedback_form"):
-        name = st.text_input("Your Name")
-        email = st.text_input("Your Email")
-        message = st.text_area("Your Message")
-        submit_button = st.form_submit_button("Submit")
-
-        if submit_button:
-            if name and email and message:
-                # Save feedback to the database
-                insert_feedback(name, email, message)
-                st.success("Thank you for your feedback!")
-            else:
-                st.error("Please fill out all fields.")
-
-    # Display stored feedback (Optional)
-    st.write("---")
-    st.header("Feedback Received")
-    feedback_data = fetch_all_feedback()
-    if feedback_data:
-        for entry in feedback_data:
-            st.write(f"**Name:** {entry[1]}")
-            st.write(f"**Email:** {entry[2]}")
-            st.write(f"**Message:** {entry[3]}")
-            st.write(f"**Submitted At:** {entry[4]}")
-            st.write("---")
-    else:
-        st.info("No feedback submitted yet.")
 
 # Render the footer on all pages
 render_footer()
