@@ -7,6 +7,7 @@ import numpy as np
 import math
 from pathlib import Path
 import requests
+import feedparser
 from bs4 import BeautifulSoup
 
 # Specify title and logo for the webpage.
