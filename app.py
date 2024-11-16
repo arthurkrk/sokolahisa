@@ -67,8 +67,19 @@ with tabs[1]:
 
     # Sidebar for input controls
     ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
-    start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
-    end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
+    # Date range selection
+    today = date.today()
+    min_date = today - timedelta(days=365 * 5)
+    max_date = today
+    date_range = st.slider(
+        "Select Date Range",
+        min_value=min_date,
+        max_value=max_date,
+        value=(today - timedelta(days=365), today)
+    )
+    sdate, edate = date_range
+    #start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
+    #end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
     show_recommendation = st.checkbox("Show Recommendation", key="show_recommendation")
 
     # Chart type selection
