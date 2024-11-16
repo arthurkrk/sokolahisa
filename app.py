@@ -82,14 +82,14 @@ else:
             st.markdown(f"<div class='{price_class}'>{price_change:.2f} ({percentage_change:.2f}%)</div>", unsafe_allow_html=True)
 
             # Indicator toggles
-            show_sma = st.sidebar.checkbox("Show Simple Moving Average (SMA)", key="show_sma")
-            show_rsi = st.sidebar.checkbox("Show Relative Strength Index (RSI)", key="show_rsi")
-            show_ema = st.sidebar.checkbox("Show Exponential Moving Average (EMA)", key="show_ema")
-            show_macd = st.sidebar.checkbox("Show Moving Average Convergence Divergence (MACD)", key="show_macd")
-            show_vwap = st.sidebar.checkbox("Show Volume Weighted Average Price (VWAP)", key="show_vwap")
-            show_stochastic = st.sidebar.checkbox("Show Stochastic Oscillator", key="show_stochastic")
-            show_atr = st.sidebar.checkbox("Show Average True Range (ATR)", key="show_atr")
-            show_obv = st.sidebar.checkbox("Show On-Balance Volume (OBV)", key="show_obv")
+            show_sma = st.checkbox("Show Simple Moving Average (SMA)", key="show_sma")
+            show_rsi = st.checkbox("Show Relative Strength Index (RSI)", key="show_rsi")
+            show_ema = st.checkbox("Show Exponential Moving Average (EMA)", key="show_ema")
+            show_macd = st.checkbox("Show Moving Average Convergence Divergence (MACD)", key="show_macd")
+            show_vwap = st.checkbox("Show Volume Weighted Average Price (VWAP)", key="show_vwap")
+            show_stochastic = st.checkbox("Show Stochastic Oscillator", key="show_stochastic")
+            show_atr = st.checkbox("Show Average True Range (ATR)", key="show_atr")
+            show_obv = st.checkbox("Show On-Balance Volume (OBV)", key="show_obv")
 
             # Initialize buy signal count
             buy_signals = 0
