@@ -65,55 +65,57 @@ with tabs[1]:
     st.title("Enhanced Stock Information Web App")
     st.write("Enter a ticker symbol to retrieve and visualize stock information interactively.")
 
-    # Sidebar for input controls
-    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
     # Date range selection
     today = date.today()
-    min_date = today - timedelta(days=365 * 5)
+    min_date = today - timedelta(days=365 * 5)  # Allow data up to 5 years back
     max_date = today
     date_range = st.slider(
         "Select Date Range",
         min_value=min_date,
         max_value=max_date,
         value=(today - timedelta(days=365), today)
-    #)
+    )
     sdate, edate = date_range
-    #start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
-    #end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
+
+    # Ticker input
+    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+
+    # Recommendation toggle
     show_recommendation = st.checkbox("Show Recommendation", key="show_recommendation")
 
     # Chart type selection
     chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
 
     # Fetch data and ensure valid date range
-    #if sdate > edate:
+    if sdate > edate:
         st.error("End date must be after the start date. Please adjust your dates.")
-    #else:
-        if ticker_symbol:
-            try:
-                stock = yf.Ticker(ticker_symbol)
-                data = stock.history(start=sdate, end=edate)
+    elif ticker_symbol:
+        try:
+            # Fetch stock data using yfinance
+            stock = yf.Ticker(ticker_symbol)
+            data = stock.history(start=sdate, end=edate)
 
+            if data.empty:
+                st.warning(f"No data found for {ticker_symbol} in the selected date range.")
+            else:
                 # Display current price
                 current_price = data['Close'].iloc[-1]
                 price_change = current_price - data['Close'].iloc[-2]
                 percentage_change = (price_change / data['Close'].iloc[-2]) * 100
-                price_class = "price-positive" if price_change > 0 else "price-negative"
+                price_class = "positive" if price_change > 0 else "negative"
+
                 st.markdown(
-                    f"<div class='price {price_class}'>{current_price:.2f} USD</div>",
-                    unsafe_allow_html=True
-                )
-                st.markdown(
-                    f"<div class='{price_class}'>{price_change:.2f} ({percentage_change:.2f}%)</div>",
-                    unsafe_allow_html=True
+                    f"### Current Price: **{current_price:.2f} USD** "
+                    f"({price_change:+.2f} / {percentage_change:+.2f}%)"
                 )
 
                 # Indicator toggles
-                show_sma = st.checkbox("Show Simple Moving Average (SMA)", key="show_sma")
-                show_rsi = st.checkbox("Show Relative Strength Index (RSI)", key="show_rsi")
-                show_ema = st.checkbox("Show Exponential Moving Average (EMA)", key="show_ema")
-                show_macd = st.checkbox("Show Moving Average Convergence Divergence (MACD)", key="show_macd")
-                show_vwap = st.checkbox("Show Volume Weighted Average Price (VWAP)", key="show_vwap")
+                st.write("### Select Indicators")
+                show_sma = st.checkbox("Simple Moving Average (SMA)")
+                show_ema = st.checkbox("Exponential Moving Average (EMA)")
+                show_rsi = st.checkbox("Relative Strength Index (RSI)")
+                show_macd = st.checkbox("Moving Average Convergence Divergence (MACD)")
+                show_vwap = st.checkbox("Volume Weighted Average Price (VWAP)")
 
                 # Initialize buy signal count
                 buy_signals = 0
@@ -123,6 +125,7 @@ with tabs[1]:
                 if show_sma:
                     sma_period = st.sidebar.slider("SMA Period", 5, 100, 20)
                     data['SMA'] = data['Close'].rolling(window=sma_period).mean()
+                    st.line_chart(data[['Close', 'SMA']])
                     if data['Close'].iloc[-1] > data['SMA'].iloc[-1]:
                         buy_signals += 1
                     total_indicators += 1
@@ -141,8 +144,8 @@ with tabs[1]:
                     delta = data['Close'].diff(1)
                     gain = delta.where(delta > 0, 0)
                     loss = -delta.where(delta < 0, 0)
-                    avg_gain = gain.rolling(window=rsi_period, min_periods=1).mean()
-                    avg_loss = loss.rolling(window=rsi_period, min_periods=1).mean()
+                    avg_gain = gain.rolling(window=rsi_period).mean()
+                    avg_loss = loss.rolling(window=rsi_period).mean()
                     rs = avg_gain / avg_loss
                     data['RSI'] = 100 - (100 / (1 + rs))
                     if data['RSI'].iloc[-1] < 30:
@@ -150,19 +153,18 @@ with tabs[1]:
                     total_indicators += 1
 
                 # Determine Buy or Sell Recommendation
-                sell_signals = total_indicators - buy_signals
                 if show_recommendation:
-                    st.subheader("Recommendation Summary")
+                    st.write("### Recommendation Summary")
                     st.write(f"Total Indicators: {total_indicators}")
                     st.write(f"Buy Signals: {buy_signals}")
-                    st.write(f"Sell Signals: {sell_signals}")
+                    st.write(f"Sell Signals: {total_indicators - buy_signals}")
 
-                    if buy_signals > sell_signals:
+                    if buy_signals > total_indicators / 2:
                         st.success("**Overall Recommendation: Buy**")
                     else:
                         st.warning("**Overall Recommendation: Sell**")
 
-                # Plot stock price based on selected chart type
+                # Plot stock price
                 st.subheader(f"{ticker_symbol} Price Chart")
                 fig = go.Figure()
 
@@ -186,8 +188,9 @@ with tabs[1]:
                 )
                 st.plotly_chart(fig)
 
-            except Exception as e:
-                st.error(f"Could not retrieve data for {ticker_symbol}. Error: {e}")
+        except Exception as e:
+            st.error(f"Could not retrieve data for {ticker_symbol}. Error: {e}")
+
 
 # Tab: Comparison
 with tabs[2]:
