@@ -235,17 +235,13 @@ with tabs[2]:
                 st.warning("No data available for the selected stock(s) and date range.")
     else:
         st.warning("Please select at least one stock.")
+
 # Tab: News
 with tabs[3]:
     st.header("News")
-    st.write("News")
-    import streamlit as st
-    import requests
-    from bs4 import BeautifulSoup
-    import feedparser
-    from datetime import datetime
+    st.write("Stay updated with the latest news on your selected stock.")
 
-# Function to extract news from Google News RSS
+    # Function to extract news from Google News RSS
     def extract_news_from_google_rss(ticker):
         """Fetch news articles for a given stock ticker using Google News RSS."""
         url = f"https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en"
@@ -256,8 +252,7 @@ with tabs[3]:
             news_articles.append({"title": entry.title, "url": entry.link, "date": published_date})
         return news_articles
 
-
-# Function to fetch and preprocess text
+    # Function to fetch and preprocess text
     def fetch_article_content(url):
         """Fetch article content using BeautifulSoup."""
         try:
@@ -270,14 +265,13 @@ with tabs[3]:
         except Exception as e:
             return None, None
 
-
-# App layout and styling
+    # App layout and styling
     st.title("Stock News Fetcher")
     ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker")
 
     if ticker_symbol:
         try:
-        # Fetch news for the given ticker automatically
+            # Fetch news for the given ticker automatically
             news = extract_news_from_google_rss(ticker_symbol)
             if news:
                 st.subheader(f"Latest News for {ticker_symbol.upper()}")
@@ -288,9 +282,8 @@ with tabs[3]:
             else:
                 st.warning("No news articles found for this ticker.")
         except Exception as e:
-            st.error(f"An error occurred while fetching news: {e}")
-    else:
-        st.info("Enter a stock ticker above to fetch the latest news.")
+            st.error
+
 
 # Tab: Contact Us
 with tabs[4]:
