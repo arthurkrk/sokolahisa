@@ -76,7 +76,7 @@ with tabs[1]:
         min_value=min_date,
         max_value=max_date,
         value=(today - timedelta(days=365), today)
-    )
+    #)
     sdate, edate = date_range
     #start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
     #end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
@@ -86,9 +86,9 @@ with tabs[1]:
     chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
 
     # Fetch data and ensure valid date range
-    if sdate > edate:
+    #if sdate > edate:
         st.error("End date must be after the start date. Please adjust your dates.")
-    else:
+    #else:
         if ticker_symbol:
             try:
                 stock = yf.Ticker(ticker_symbol)
