@@ -6,3 +6,6 @@ pandas
 datetime
 yfinance
 pandas_ta
+feedparser
+bs4
+requests
