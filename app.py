@@ -358,5 +358,113 @@ with tabs[4]:
             st.write("---")
     else:
         st.info("No feedback submitted yet.")
+
+# Tab: Stock Information tab
+with tabs[5]:
+    st.header("Stock Information")
+    st.write("Select one stock")
+
+    # App title and description
+    st.title("Enhanced Stock Information Web App")
+    st.write("Enter a ticker symbol to retrieve and visualize stock information interactively.")
+
+    # Sidebar for input controls
+    st.title("Stock Input Options")
+    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+    start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
+    end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
+    show_recommendation = st.checkbox("Show Recommendation", key="show_recommendation")
+
+    # Chart type selection
+    chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
+
+    # Fetch data and ensure valid date range
+    if start_date > end_date:
+        st.error("End date must be after the start date. Please adjust your dates.")
+    else:
+        if ticker_symbol:
+            try:
+                stock = yf.Ticker(ticker_symbol)
+                data = stock.history(start=start_date, end=end_date)
+
+                # Display current price
+                current_price = data['Close'].iloc[-1]
+                price_change = current_price - data['Close'].iloc[-2]
+                percentage_change = (price_change / data['Close'].iloc[-2]) * 100
+                price_class = "price-positive" if price_change > 0 else "price-negative"
+                st.markdown(f"<div class='price {price_class}'>{current_price:.2f} USD</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='{price_class}'>{price_change:.2f} ({percentage_change:.2f}%)</div>", unsafe_allow_html=True)
+
+                # Indicator toggles
+                show_sma = st.checkbox("Show Simple Moving Average (SMA)", key="show_sma")
+                show_rsi = st.checkbox("Show Relative Strength Index (RSI)", key="show_rsi")
+                show_ema = st.checkbox("Show Exponential Moving Average (EMA)", key="show_ema")
+                show_macd = st.checkbox("Show Moving Average Convergence Divergence (MACD)", key="show_macd")
+                show_vwap = st.checkbox("Show Volume Weighted Average Price (VWAP)", key="show_vwap")
+                show_stochastic = st.checkbox("Show Stochastic Oscillator", key="show_stochastic")
+                show_atr = st.checkbox("Show Average True Range (ATR)", key="show_atr")
+                show_obv = st.checkbox("Show On-Balance Volume (OBV)", key="show_obv")
+
+                # Initialize buy signal count
+                buy_signals = 0
+                total_indicators = 0
+
+                # Calculate and toggle indicators (similar to the full code above)
+
+                # Determine Buy or Sell Recommendation
+                sell_signals = total_indicators - buy_signals
+                if show_recommendation:
+                    st.subheader("Recommendation Summary")
+                    st.write(f"Total Indicators: {total_indicators}")
+                    st.write(f"Buy Signals: {buy_signals}")
+                    st.write(f"Sell Signals: {sell_signals}")
+
+                    if buy_signals > sell_signals:
+                        st.success("**Overall Recommendation: Buy** - Majority of indicators suggest a buy signal.")
+                    else:
+                        st.warning("**Overall Recommendation: Sell** - Majority of indicators suggest a sell signal.")
+
+                # Plot stock price based on selected chart type
+                st.subheader(f"{ticker_symbol} Price Chart")
+                fig = go.Figure()
+
+                if chart_type == "Line Chart":
+                    # Line chart with indicators
+                    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], mode='lines', name="Close Price"))
+                    if show_sma:
+                        fig.add_trace(go.Scatter(x=data.index, y=data['SMA'], mode='lines', name="SMA"))
+                    if show_ema:
+                        fig.add_trace(go.Scatter(x=data.index, y=data['EMA'], mode='lines', name="EMA"))
+                    if show_vwap:
+                        fig.add_trace(go.Scatter(x=data.index, y=data['VWAP'], mode='lines', name="VWAP"))
+
+                elif chart_type == "Candlestick Chart":
+                    # Candlestick chart with indicators
+                    fig.add_trace(go.Candlestick(
+                        x=data.index,
+                        open=data['Open'],
+                        high=data['High'],
+                        low=data['Low'],
+                        close=data['Close'],
+                        name="Candlestick"
+                    ))
+                    if show_sma:
+                        fig.add_trace(go.Scatter(x=data.index, y=data['SMA'], mode='lines', name="SMA"))
+                    if show_ema:
+                        fig.add_trace(go.Scatter(x=data.index, y=data['EMA'], mode='lines', name="EMA"))
+                    if show_vwap:
+                        fig.add_trace(go.Scatter(x=data.index, y=data['VWAP'], mode='lines', name="VWAP"))
+
+                fig.update_layout(
+                    title=f"{ticker_symbol} Price Chart",
+                    xaxis_title="Date",
+                    yaxis_title="Price (USD)",
+                    xaxis_rangeslider_visible=(chart_type == "Candlestick Chart")  # Add range slider for candlesticks
+                )
+                st.plotly_chart(fig)
+
+            except Exception as e:
+                st.error(f"Could not retrieve data for {ticker_symbol}. Error: {e}")
+
 # Render the footer on all pages
 render_footer()
