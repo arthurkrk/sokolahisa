@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import appdirs as ad
 import pandas as pd
+import numpy as np
 import math
 from pathlib import Path
 import requests
@@ -42,18 +43,18 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 # Page Title
-render_header("S&P 500 Industry Analysis")
+render_header("S&P 500 Features Analysis")
 # Create tabs
-tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Comparison", "News", "Contacts"])
+tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Risk Assessment","Comparison", "News", "Contacts"])
 
 # Home
 with tabs[0]:
     st.header("Home")
-    st.write("Our web app provides insights into stock market trends and helps in making data-driven investment decisions.")
+    st.write("This web app offers valuable insights into stock market trends, empowering you to make smarter, data-driven investment choices.")
     st.image(
         "https://st3.depositphotos.com/3108485/32120/i/600/depositphotos_321205098-stock-photo-businessman-plan-graph-growth-and.jpg",
-        caption="Placeholder image for the Home page."
-    )
+        )
+    st.write("With a good perspective on history, we can have a better understanding of the past and present, and thus a clear vision of the future. ~ Carlos Slim Helu.")
 # Fundamental Analysis
 with tabs[1]:
     st.header("Fundamental Analysis")
@@ -128,7 +129,7 @@ with tabs[1]:
             st.error(f"An error occurred: {e}")
 
     if ticker:
-        analyze_stock_fundamentals(ticker)
+        analyze_stock_fundamentals(ticker)      
 # Technical Analysis
 with tabs[2]:
     st.header("Stock Information")
@@ -137,11 +138,12 @@ with tabs[2]:
     ticker_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
     # Date slicer
     st.write("### Select Date Range")
-    today = datetime.now()
-    date_range = st.slider(
-        "Drag to select the range:",
-        min_value=today - timedelta(days=5 * 365),
-        max_value=today,
+    today = date.today()
+    min_date = today - timedelta(days=365 * 5)  # Allow data up to 5 years back
+    max_date = today
+    date_range = st.slider("Drag to select the range:",
+        min_value=min_date,
+        max_value=max_date,
         value=(today - timedelta(days=365), today),
         format="YYYY-MM-DD",
     )
@@ -275,9 +277,97 @@ with tabs[2]:
 
         except Exception as e:
             st.error(f"Failed to retrieve data for {ticker_symbol}. Error: {e}")
-
-# Tab: Comparison
+# Risk Assessment Tab
 with tabs[3]:
+    st.title("Optimal Risk Portfolio for Selected Stocks")
+
+    # Sidebar Settings
+    st.header("Portfolio Settings")
+    stocks = st.multiselect(
+        "Select Stocks for Portfolio", 
+        ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN', 'META'], 
+        default=['AAPL', 'MSFT']
+    )
+
+    # Date Range Slider
+    today = date.today()
+    date_range = st.slider(
+        "Select Date Range:",
+        min_value=today - timedelta(days=365 * 5),
+        max_value=today,
+        value=(today - timedelta(days=365), today),
+        format="YYYY-MM-DD",
+    )
+    start_date, end_date = map(pd.Timestamp, date_range)
+
+    # Risk-Free Rate
+    risk_free_rate = st.number_input("Risk-Free Rate (%)", value=2.0, step=0.1) / 100
+
+    # Fetch and Process Data
+    if stocks:
+        st.write(f"### Selected Stocks: {', '.join(stocks)}")
+        try:
+            # Fetch stock data
+            data = yf.download(stocks, start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))['Adj Close']
+            
+            if data.empty:
+                st.error("No data found for the selected stocks and date range.")
+            else:
+                # Calculate Returns and Excess Returns
+                returns = data.pct_change().dropna()
+                excess_returns = returns - risk_free_rate / 252
+
+                # Plot Holding Period Returns
+                st.write("### Holding Period Returns")
+                st.line_chart(returns)
+
+                # Plot Excess Returns
+                st.write("### Excess Returns")
+                st.line_chart(excess_returns)
+
+                # Standard Deviation and Risk Premium
+                std_deviation = excess_returns.std()
+                mean_excess_returns = excess_returns.mean()
+                risk_premium = mean_excess_returns - risk_free_rate / 252
+
+                st.write("**Standard Deviation of Excess Returns**")
+                st.write(std_deviation)
+
+                st.write("**Risk Premium**")
+                st.write(risk_premium)
+
+                # Optimal Portfolio Calculation
+                cov_matrix = returns.cov()
+                weights = np.linalg.inv(cov_matrix) @ mean_excess_returns
+                weights /= weights.sum()  # Normalize weights
+
+                # Plot Optimal Portfolio Weights
+                st.write("### Optimal Portfolio Weights")
+                st.bar_chart(pd.DataFrame(weights, index=returns.columns, columns=["Weight"]))
+
+                # Portfolio Statistics
+                portfolio_return = np.dot(weights, mean_excess_returns) * 252
+                portfolio_std = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
+                sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_std
+
+                st.write("### Portfolio Statistics")
+                stats_df = pd.DataFrame({
+                    "Metric": ["Expected Portfolio Return", "Portfolio Volatility (Risk)", "Sharpe Ratio"],
+                    "Value": [portfolio_return, portfolio_std, sharpe_ratio]
+                })
+
+                st.write(stats_df)
+
+                # Plot Portfolio Statistics as a bar chart
+                st.write("### Portfolio Statistics Chart")
+                st.bar_chart(stats_df.set_index('Metric')['Value'])
+
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+    else:
+        st.warning("Please select at least one stock.")
+# Comparison
+with tabs[4]:
     st.header("Comparison")
     st.write("Compare stocks based on fundamental and technical analysis.")
 
@@ -325,7 +415,7 @@ with tabs[3]:
 
         # Technical Analysis
         st.subheader("Technical Analysis")
-        today, min_date = date.today(), date.today() - timedelta(days=5 * 365)
+        today, min_date = date.today(), date.today() - timedelta(days=365*5)
         date_range = st.slider("Select Date Range", min_date, today, (today - timedelta(days=365), today))
         sdate, edate = date_range
 
@@ -351,18 +441,75 @@ with tabs[3]:
     else:
         st.warning("Please select at least one stock.")
 # News
-with tabs[4]:
+with tabs[5]:
     st.header("News")
     st.write("Stay updated with the latest news on your selected stock.")
+    # Function to extract news from Google News RSS
+    def extract_news_from_google_rss(ticker):
+        """Fetch news articles for a given stock ticker using Google News RSS."""
+        url = f"https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en"
+        feed = feedparser.parse(url)
+        news_articles = []
+        for entry in feed.entries[:15]:  # Limit to the latest 15 articles
+            published_date = datetime(*entry.published_parsed[:6])  # Convert to datetime
+            news_articles.append({"title": entry.title, "url": entry.link, "date": published_date})
+        return news_articles
+
+    # Function to fetch and preprocess text
+    def fetch_article_content(url):
+        """Fetch article content using BeautifulSoup."""
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            headline = soup.title.string if soup.title else "No headline"
+            paragraphs = soup.find_all("p")
+            content = " ".join([para.get_text() for para in paragraphs])
+            return headline, content
+        except Exception as e:
+            return None, None
+
+    # App layout and styling
+    st.title("Stock News Fetcher")
+    ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")  # Unique key
+
+    if ticker_symbol_news:
+        try:
+            # Fetch news for the given ticker automatically
+            news = extract_news_from_google_rss(ticker_symbol_news)
+            if news:
+                st.subheader(f"Latest News for {ticker_symbol_news.upper()}")
+                for article in news:
+                    st.write(f"**{article['title']}**")
+                    st.write(f"[Read more]({article['url']}) - {article['date'].strftime('%Y-%m-%d %H:%M:%S')}")
+                    st.write("---")
+            else:
+                st.warning("No news articles found for this ticker.")
+        except Exception as e:
+            st.error(f"An error occurred while fetching news: {e}")
+    else:
+        st.info("Enter a stock ticker above to fetch the latest news.")    
 # Technical Analysis
-with tabs[5]:
+with tabs[6]:
     st.title("Contact Us")
     # University Information
-    st.write("""### International University of Japan  
-             **Address:** 777 Kokusai-cho, Minami Uonuma-shi, Niigata 949-7277, Japan  
-             **Phone:** +81 (0) 25-779-1111  
-             **FAX:** +81 (0) 25-779-4441  
-             """)
+    st.subheader("International University of Japan")
+    st.write("**Address:** 777 Kokusai-cho, Minami Uonuma-shi, Niigata 949-7277, Japan")
+    st.write("**Phone:** +81 (0) 25-779-1111")
+    st.write("**FAX:** +81 (0) 25-779-4441")  
+    st.markdown("---")
+    # Feedback Section
+    st.write("### Rate Your Experience")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("😊 Excellent"):
+            st.success("Thank you for your positive feedback!")
+    with col2:
+        if st.button("😐 Neutral"):
+            st.info("Thank you for your feedback!")
+    with col3:
+        if st.button("☹️ Poor"):
+            st.warning("We appreciate your feedback and will work to improve.")
+            st.markdown("---")
     # Developers' Information
     st.write("### Meet Our Developers")
     developers = [
@@ -374,12 +521,12 @@ with tabs[5]:
             {"name": "Trymore Musasiri", "email": "tmusariri@iuj.ac.jp", "github": "https://github.com"},
             ]
     for dev in developers:
-        st.write(f"- **{dev['name']}**")
-        st.write(f"  - Email: [{dev['email']}](mailto:{dev['email']})")
-        st.write(f"  - GitHub: [{dev['github']}]({dev['github']})")
-    # Feedback Button
-    st.write("### Rate Your Experience")
-    if st.button("Rate Us"):
-        st.success("Thank you for your feedback!")
+        st.write(f"**{dev['name']}**")
+        st.write(f"Email: [{dev['email']}](mailto:{dev['email']})")
+        st.write(f"GitHub: [{dev['github']}]({dev['github']})")
+        st.markdown("---")
+    #Thank you note
+    st.write("Thank you for visiting us today 😊.")
 # Render the footer on all pages
+
 render_footer()
