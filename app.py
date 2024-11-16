@@ -58,8 +58,7 @@ with tabs[0]:
 # Tab: Stock Information
 with tabs[1]:
     st.header("Fundamental Analysis")
-    st.write("In this section we analyse a firm's prospects based on broader aspects of fundamental analysis.
-    ")
+    st.write("In this section we analyse a firm's prospects based on broader aspects of fundamental analysis.")
 
 # Tab: Stock Information
 with tabs[2]:
