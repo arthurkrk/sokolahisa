@@ -5,3 +5,4 @@ plotly
 pandas
 datetime
 yfinance
+pandas_ta
