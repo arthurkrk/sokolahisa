@@ -69,8 +69,7 @@ with tabs[1]:
     today = date.today()
     min_date = today - timedelta(days=365 * 5)  # Allow data up to 5 years back
     max_date = today
-    date_range = st.slider(
-        "Select Date Range",
+    date_range = st.slider("Select Date Range",
         min_value=min_date,
         max_value=max_date,
         value=(today - timedelta(days=365), today)
@@ -108,6 +107,11 @@ with tabs[1]:
                     f"### Current Price: **{current_price:.2f} USD** "
                     f"({price_change:+.2f} / {percentage_change:+.2f}%)"
                 )
+                # Filter data for the selected date range
+                filtered_data = data['Close'][selected_stocks]
+                sdate_utc = pd.to_datetime(sdate).tz_localize('UTC')
+                edate_utc = pd.to_datetime(edate).tz_localize('UTC')
+                filtered_data = filtered_data[(filtered_data.index >= sdate_utc) & (filtered_data.index <= edate_utc)]
 
                 # Indicator toggles
                 st.write("### Select Indicators")
