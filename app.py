@@ -267,14 +267,14 @@ with tabs[3]:
 
     # App layout and styling
     st.title("Stock News Fetcher")
-    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker")
+    ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")  # Unique key
 
-    if ticker_symbol:
+    if ticker_symbol_news:
         try:
             # Fetch news for the given ticker automatically
-            news = extract_news_from_google_rss(ticker_symbol)
+            news = extract_news_from_google_rss(ticker_symbol_news)
             if news:
-                st.subheader(f"Latest News for {ticker_symbol.upper()}")
+                st.subheader(f"Latest News for {ticker_symbol_news.upper()}")
                 for article in news:
                     st.write(f"**{article['title']}**")
                     st.write(f"[Read more]({article['url']}) - {article['date'].strftime('%Y-%m-%d %H:%M:%S')}")
@@ -282,8 +282,9 @@ with tabs[3]:
             else:
                 st.warning("No news articles found for this ticker.")
         except Exception as e:
-            st.error
-
+            st.error(f"An error occurred while fetching news: {e}")
+    else:
+        st.info("Enter a stock ticker above to fetch the latest news.")
 
 # Tab: Contact Us
 with tabs[4]:
