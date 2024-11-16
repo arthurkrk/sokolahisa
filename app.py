@@ -86,13 +86,13 @@ with tabs[1]:
     chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
 
     # Fetch data and ensure valid date range
-    if start_date > end_date:
+    if sdate > edate:
         st.error("End date must be after the start date. Please adjust your dates.")
     else:
         if ticker_symbol:
             try:
                 stock = yf.Ticker(ticker_symbol)
-                data = stock.history(start=start_date, end=end_date)
+                data = stock.history(start=sdate, end=edate)
 
                 # Display current price
                 current_price = data['Close'].iloc[-1]
