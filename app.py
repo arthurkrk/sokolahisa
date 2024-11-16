@@ -45,7 +45,7 @@ def render_footer():
 # Page Title
 render_header("S&P 500 Stock Analysis")
 # Create tabs
-tabs = st.tabs(["Home", "Stock Analysis", "Stock Comparison", "Stock News", "Contacts"])
+tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Stock Comparison", "Stock News", "Contacts"])
 
 # Tab: Home
 with tabs[0]:
@@ -55,9 +55,14 @@ with tabs[0]:
         "https://st3.depositphotos.com/3108485/32120/i/600/depositphotos_321205098-stock-photo-businessman-plan-graph-growth-and.jpg",
         caption="Placeholder image for the Home page."
     )
-
 # Tab: Stock Information
 with tabs[1]:
+    st.header("Fundamental Analysis")
+    st.write("In this section we analyse a firm's prospects based on broader aspects of fundamental analysis.
+    ")
+
+# Tab: Stock Information
+with tabs[2]:
     st.header("Stock Information")
     st.write("Select one stock to analyze and visualize.")
 
@@ -65,16 +70,8 @@ with tabs[1]:
     st.title("Enhanced Stock Information Web App")
     st.write("Enter a ticker symbol to retrieve and visualize stock information interactively.")
 
-    # Date range selection
-    today = date.today()
-    min_date = today - timedelta(days=365 * 5)  # Allow data up to 5 years back
-    max_date = today
-    date_range = st.slider("Select Date Range",
-        min_value=min_date,
-        max_value=max_date,
-        value=(today - timedelta(days=365), today)
-    )
-    sdate, edate = date_range
+    start_date = st.sidebar.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
+    end_date = st.sidebar.date_input("End Date", value=datetime.now(), key="end_date")
 
     # Ticker input
     ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
@@ -86,13 +83,13 @@ with tabs[1]:
     chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
 
     # Fetch data and ensure valid date range
-    if sdate > edate:
+    if start_date > end_date:
         st.error("End date must be after the start date. Please adjust your dates.")
     elif ticker_symbol:
         try:
             # Fetch stock data using yfinance
             stock = yf.Ticker(ticker_symbol)
-            data = stock.history(start=sdate, end=edate)
+            data = stock.history(start=start_date, end=end_date)
 
             if data.empty:
                 st.warning(f"No data found for {ticker_symbol} in the selected date range.")
@@ -107,12 +104,7 @@ with tabs[1]:
                     f"### Current Price: **{current_price:.2f} USD** "
                     f"({price_change:+.2f} / {percentage_change:+.2f}%)"
                 )
-                # Filter data for the selected date range
-                filtered_data = data['Close'][selected_stocks]
-                sdate_utc = pd.to_datetime(sdate).tz_localize('UTC')
-                edate_utc = pd.to_datetime(edate).tz_localize('UTC')
-                filtered_data = filtered_data[(filtered_data.index >= sdate_utc) & (filtered_data.index <= edate_utc)]
-
+                
                 # Indicator toggles
                 st.write("### Select Indicators")
                 show_sma = st.checkbox("Simple Moving Average (SMA)")
@@ -197,7 +189,7 @@ with tabs[1]:
 
 
 # Tab: Comparison
-with tabs[2]:
+with tabs[3]:
     st.header("Stock Comparison")
     st.write("This is the Visualization page. Show your plots here.")
     import matplotlib.pyplot as plt
@@ -259,7 +251,7 @@ with tabs[2]:
         st.warning("Please select at least one stock.")
 
 # Tab: News
-with tabs[3]:
+with tabs[4]:
     st.header("News")
     st.write("Stay updated with the latest news on your selected stock.")
 
@@ -309,7 +301,7 @@ with tabs[3]:
         st.info("Enter a stock ticker above to fetch the latest news.")
 
 # Tab: Contact Us
-with tabs[4]:
+with tabs[5]:
     st.header("Contact Us")
     st.write("We'd love to hear your feedback! Please use the form below.")
 
