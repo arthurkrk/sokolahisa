@@ -9,4 +9,6 @@ pandas_ta
 feedparser
 bs4
 requests
-feedparser
+feedparser>=6.0.10
+requests>2.25.1
+beautifulsoup4>4.9.3
