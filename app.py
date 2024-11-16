@@ -55,14 +55,14 @@ with tabs[1]:
     st.title("Enhanced Stock Information Web App")
     st.write("Enter a ticker symbol to retrieve and visualize stock information interactively.")
     # Sidebar for input controls
-    st.sidebar.header("Stock Input Options")
-    ticker_symbol = st.sidebar.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
-    start_date = st.sidebar.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
-    end_date = st.sidebar.date_input("End Date", value=datetime.now(), key="end_date")
-    show_recommendation = st.sidebar.checkbox("Show Recommendation", key="show_recommendation")
+    st.title("Stock Input Options")
+    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+    start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
+    end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
+    show_recommendation = st.checkbox("Show Recommendation", key="show_recommendation")
 
 # Chart type selection
-chart_type = st.sidebar.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
+chart_type = st.radio("Select Chart Type", ["Line Chart", "Candlestick Chart"])
 
 # Fetch data and ensure valid date range
 if start_date > end_date:
