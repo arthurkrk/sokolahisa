@@ -43,9 +43,9 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 # Page Title
-render_header("S&P 500 Stock Analysis")
+render_header("S&P 500 Industry Analysis")
 # Create tabs
-tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Stock Comparison", "Stock News", "Contacts"])
+tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Comparison", "News", "Contacts"])
 
 # Tab: Home
 with tabs[0]:
@@ -59,6 +59,13 @@ with tabs[0]:
 with tabs[1]:
     st.header("Fundamental Analysis")
     st.write("In this section we analyse a firm's prospects based on broader aspects of fundamental analysis.")
+    stock = yf.Ticker(ticker)
+    info = stock.info
+    ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+    st.write("Fundamental Analysis for {ticker}")
+    st.write("-" * 50)
+    
+
 
 # Tab: Stock Information
 with tabs[2]:
@@ -69,8 +76,8 @@ with tabs[2]:
     st.title("Enhanced Stock Information Web App")
     st.write("Enter a ticker symbol to retrieve and visualize stock information interactively.")
 
-    start_date = st.sidebar.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
-    end_date = st.sidebar.date_input("End Date", value=datetime.now(), key="end_date")
+    start_date = st.date_input("Start Date", value=datetime(2022, 1, 1), key="start_date")
+    end_date = st.date_input("End Date", value=datetime.now(), key="end_date")
 
     # Ticker input
     ticker_symbol = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
@@ -189,7 +196,7 @@ with tabs[2]:
 
 # Tab: Comparison
 with tabs[3]:
-    st.header("Stock Comparison")
+    st.header("Comparison")
     st.write("This is the Visualization page. Show your plots here.")
     import matplotlib.pyplot as plt
     import numpy as np
@@ -215,7 +222,7 @@ with tabs[3]:
         "Select Stocks", symbols, default=["AAPL"]
     )
     # Stock comparison
-    st.title("Stock Comparison")
+    st.title("Comparison")
     if selected_stocks:
         # Fetch stock data
         data = yf.download(
