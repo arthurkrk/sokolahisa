@@ -5,6 +5,10 @@ import appdirs as ad
 import pandas as pd
 import math
 from pathlib import Path
+import requests
+from bs4 import BeautifulSoup
+import feedparser
+
 # Specify title and logo for the webpage.
 # Set up your web app
 import streamlit as st
