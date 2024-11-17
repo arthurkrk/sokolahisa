@@ -8,6 +8,7 @@ import math
 from pathlib import Path
 import requests
 import feedparser
+import seaborn as sns
 from bs4 import BeautifulSoup
 import riskfolio as rp
 # Specify title and logo for the webpage.
