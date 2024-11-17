@@ -21,7 +21,7 @@ from datetime import datetime
 ad.user_cache_dir = lambda *args: "/tmp"
 #Specify title and logo for the webpage.
 st.set_page_config(
-    page_title="Stock Price App",
+    page_title="Investments App",
     page_icon="chart_with_upwards_trend",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -46,8 +46,8 @@ def render_footer():
 # Page Title
 render_header("S&P 500 Features Analysis")
 # Create tabs
-tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Risk Portfolio","Comparison", "News", "Contacts"])
-
+tabs = st.tabs(["🏠Home","🔎Fundamental Analysis", "📈Technical Analysis", "🚩Risk Portfolio","⚖️Comparison", "🌐News", "📧Contacts"])
+#source: https://emojidb.org/invest-emojis
 # Home
 with tabs[0]:
     st.header("Home")
@@ -61,9 +61,7 @@ with tabs[0]:
 with tabs[1]:
     st.header("Fundamental Analysis")
     st.write("Analyze a firm's prospects using fundamental analysis. Enter a stock ticker below:")
-
     ticker = st.text_input("Stock Ticker (e.g., AAPL, MSFT):", value="AAPL")
-
     def analyze_stock_fundamentals(ticker):
         """Perform fundamental analysis for the given stock ticker."""
         try:
@@ -77,7 +75,6 @@ with tabs[1]:
             st.write(f"**Industry:** {info.get('industry', 'N/A')}")
             st.write(f"**Website:** [Visit Website]({info.get('website', '#')})")
             st.markdown("---")
-
             # Key Financial Metrics
             market_cap = info.get('marketCap', 0) / 1e9
             pe_ratio = info.get('trailingPE', 'N/A')
@@ -90,7 +87,6 @@ with tabs[1]:
             st.write(f"**Forward P/E Ratio:** {forward_pe}")
             st.write(f"**Price-to-Book Ratio:** {pb_ratio}")
             st.write(f"**Dividend Yield:** {dividend_yield:.2f}%")
-
             st.markdown("---")         
             # Earnings and Growth
             earnings_growth = info.get('earningsGrowth', 'N/A')
@@ -99,7 +95,6 @@ with tabs[1]:
             st.write(f"**Earnings Growth:** {earnings_growth}")
             st.write(f"**Revenue Growth:** {revenue_growth}")
             st.markdown("---")
-
             # Debt Ratios
             total_debt = info.get('totalDebt', 0)
             free_cashflow = info.get('freeCashflow', 0)
@@ -120,8 +115,8 @@ with tabs[1]:
             else:
                 st.error("Insufficient data to determine valuation.")
             st.markdown("---")
-
             # Dividend Analysis
+            st.subheader(f"Current Price: {data['Close'].iloc[-1]:.2f} USD")
             if dividend_yield > 0:
                 st.write(f"The stock offers a **dividend yield of {dividend_yield:.2f}%**.")
             else:
