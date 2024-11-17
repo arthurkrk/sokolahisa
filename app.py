@@ -83,29 +83,31 @@ with tabs[1]:
             pb_ratio = info.get('priceToBook', 'N/A')
             dividend_yield = info.get('dividendYield', 0) * 100
             forward_pe = info.get('forwardPE', 'N/A')
+            key_metrics = {
+                "Metric": ["Market Cap (Billion USD)", "Trailing P/E Ratio", "Forward P/E Ratio", "Price-to-Book Ratio", "Dividend Yield (%)"],
+                "Value": [f"${market_cap:.2f}", pe_ratio, forward_pe, pb_ratio, f"{dividend_yield:.2f}%"]
+            }
             st.write("### Key Financial Metrics")
-            st.write(f"**Market Cap:** ${market_cap:.2f} Billion")
-            st.write(f"**Trailing P/E Ratio:** {pe_ratio}")
-            st.write(f"**Forward P/E Ratio:** {forward_pe}")
-            st.write(f"**Price-to-Book Ratio:** {pb_ratio}")
-            st.write(f"**Dividend Yield:** {dividend_yield:.2f}%")
-            st.markdown("---")         
+            st.table(key_metrics)    
             # Earnings and Growth
             earnings_growth = info.get('earningsGrowth', 'N/A')
             revenue_growth = info.get('revenueGrowth', 'N/A')
+            earnings_growth_data = {
+                "Metric": ["Earnings Growth", "Revenue Growth"],
+                "Value": [earnings_growth, revenue_growth]
+            }
             st.write("### Earnings and Growth")
-            st.write(f"**Earnings Growth:** {earnings_growth}")
-            st.write(f"**Revenue Growth:** {revenue_growth}")
-            st.markdown("---")
+            st.table(earnings_growth_data)
             # Debt Ratios
             total_debt = info.get('totalDebt', 0)
             free_cashflow = info.get('freeCashflow', 0)
             debt_to_equity = info.get('debtToEquity', 'N/A')
+            debt_ratios_data = {
+                "Metric": ["Total Debt (USD)", "Free Cash Flow (USD)", "Debt-to-Equity Ratio"],
+                "Value": [f"${total_debt:,}", f"${free_cashflow:,}", debt_to_equity]
+            }
             st.write("### Debt Ratios")
-            st.write(f"**Total Debt:** ${total_debt:,}")
-            st.write(f"**Free Cash Flow:** ${free_cashflow:,}")
-            st.write(f"**Debt-to-Equity Ratio:** {debt_to_equity}")             
-            st.markdown("---")
+            st.table(debt_ratios_data)
             # Valuation Analysis
             if pe_ratio != 'N/A' and pb_ratio != 'N/A':
                 if pe_ratio < 15 and pb_ratio < 1.5:
