@@ -67,6 +67,7 @@ with tabs[1]:
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
+            data = stock.history(period="1y")
             st.subheader(f"Fundamental Analysis for {ticker.upper()}")
            # Company Overview
             st.write("### Company Overview")
@@ -74,6 +75,7 @@ with tabs[1]:
             st.write(f"**Sector:** {info.get('sector', 'N/A')}")
             st.write(f"**Industry:** {info.get('industry', 'N/A')}")
             st.write(f"**Website:** [Visit Website]({info.get('website', '#')})")
+            st.subheader(f"Current Price: {data['Close'].iloc[-1]:.2f} USD")
             st.markdown("---")
             # Key Financial Metrics
             market_cap = info.get('marketCap', 0) / 1e9
@@ -116,7 +118,6 @@ with tabs[1]:
                 st.error("Insufficient data to determine valuation.")
             st.markdown("---")
             # Dividend Analysis
-            st.subheader(f"Current Price: {data['Close'].iloc[-1]:.2f} USD")
             if dividend_yield > 0:
                 st.write(f"The stock offers a **dividend yield of {dividend_yield:.2f}%**.")
             else:
