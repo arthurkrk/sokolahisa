@@ -281,7 +281,6 @@ with tabs[2]:
 # Optimal Risk Portfolio
 with tabs[3]:
     st.title("Optimal Risk Portfolio for Selected Stocks")
-
     # Portfolio Settings
     symbols = sorted([
         "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS",
@@ -289,7 +288,6 @@ with tabs[3]:
         "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA"
     ])
     stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
-
     # Date Range Slider
     today = date.today()
     start_date, end_date = st.slider(
@@ -299,10 +297,8 @@ with tabs[3]:
         value=(today - timedelta(days=365), today),
         format="YYYY-MM-DD"
     )
-
     # Risk-Free Rate Input
     risk_free_rate = st.number_input("Risk-Free Rate (%)", value=2.0, step=0.1) / 100
-
     if stocks:
         try:
             # Fetch adjusted closing prices for the selected stocks
@@ -316,26 +312,10 @@ with tabs[3]:
                 # Display historical data
                 st.write("### Historical Price Data")
                 st.line_chart(data)
+
                 # Calculate daily returns
-                returns = data.pct_change().dropna()
-                # Correlation Matrix Heatmap
-                correlation_matrix = returns.corr()
-                st.write("### Stock Price Correlation")
-                fig, ax = plt.subplots(figsize=(10, 8))
-                sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
-                ax.set_title("Correlation Matrix", fontsize=16)
-                st.pyplot(fig)
-                # Pairwise Scatter Plots
-                st.write("### Pairwise Correlation Scatter Plots")
-                for i, stock_x in enumerate(stocks):
-                    for j, stock_y in enumerate(stocks):
-                        if i < j:
-                            fig, ax = plt.subplots(figsize=(6, 4))
-                            sns.scatterplot(x=data[stock_x], y=data[stock_y], alpha=0.7, ax=ax)
-                            ax.set_title(f"Correlation: {stock_x} vs {stock_y} ({correlation_matrix.loc[stock_x, stock_y]:.2f})")
-                            ax.set_xlabel(stock_x)
-                            ax.set_ylabel(stock_y)
-                            st.pyplot(fig)
+                returns = data.pct_change().dropna()  # Ensure `returns` is correctly defined here
+
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
                 fig, ax = plt.subplots()
@@ -344,8 +324,42 @@ with tabs[3]:
                     ax.annotate(stock, (mean, std), textcoords="offset points", xytext=(5, 5), ha='center')
                 ax.set(title="Risk-Return Map", xlabel="Expected Return", ylabel="Risk (Standard Deviation)")
                 st.pyplot(fig)
+
+                # Correlation Matrix Heatmap
+                correlation_matrix = returns.corr()
+                st.write("### Stock Price Correlation")
+                fig, ax = plt.subplots(figsize=(10, 8))
+                sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
+                ax.set_title("Correlation Matrix", fontsize=16)
+                st.pyplot(fig)
+
+                # Portfolio Optimization
+                st.write("### Portfolio Optimization")
+                port = rp.Portfolio(returns=returns)  # Pass `returns` to the Portfolio object
+                port.assets_stats(method_mu="hist", method_cov="hist")
+                weights = port.optimization(model="Classic", rm="MV", obj="Sharpe", rf=risk_free_rate)
+
+                # Optimal Portfolio Weights
+                st.write("### Optimal Portfolio Weights")
+                fig, ax = plt.subplots()
+                rp.plot_pie(w=weights, title="Sharpe Ratio Portfolio", others=0.05, ax=ax)
+                st.pyplot(fig)
+
+                # Efficient Frontier
+                st.write("### Efficient Frontier")
+                frontier = port.efficient_frontier(model="Classic", rm="MV", points=50, rf=risk_free_rate)
+                fig, ax = plt.subplots()
+                rp.plot_frontier(
+                    w_frontier=frontier, mu=port.mu, cov=port.cov, returns=port.returns, rm="MV",
+                    rf=risk_free_rate, marker="*", s=16, c="red", ax=ax
+                )
+                st.pyplot(fig)
+
         except Exception as e:
             st.error(f"An error occurred: {e}")
+    else:
+        st.warning("Please select at least one stock.")
+
 # Comparison Tab
 with tabs[4]:
     st.header("Comparison")
