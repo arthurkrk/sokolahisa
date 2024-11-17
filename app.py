@@ -9,7 +9,7 @@ from pathlib import Path
 import requests
 import feedparser
 from bs4 import BeautifulSoup
-
+import riskfolio as rp
 # Specify title and logo for the webpage.
 # Set up your web app
 import streamlit as st
@@ -46,7 +46,7 @@ def render_footer():
 # Page Title
 render_header("S&P 500 Features Analysis")
 # Create tabs
-tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Risk Assessment","Comparison", "News", "Contacts"])
+tabs = st.tabs(["Home","Fundamental Analysis", "Technical Analysis", "Risk Portfolio","Comparison", "News", "Contacts"])
 
 # Home
 with tabs[0]:
@@ -279,90 +279,68 @@ with tabs[2]:
 
         except Exception as e:
             st.error(f"Failed to retrieve data for {ticker_symbol}. Error: {e}")
-# Risk Assessment Tab
+# Risk Portfolio
 with tabs[3]:
     st.title("Optimal Risk Portfolio for Selected Stocks")
 
-    # Sidebar Settings
-    st.header("Portfolio Settings")
-    stocks = st.multiselect(
-        "Select Stocks for Portfolio", 
-        ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN', 'META'], 
-        default=['AAPL', 'MSFT']
-    )
+    # Sidebar: Portfolio Settings
+    symbols = sorted([
+        "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS",
+        "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK",
+        "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA"
+    ])
+    stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT", "GOOGL"])
 
     # Date Range Slider
     today = date.today()
-    date_range = st.slider(
-        "Select Date Range:",
-        min_value=today - timedelta(days=365 * 5),
-        max_value=today,
-        value=(today - timedelta(days=365), today),
-        format="YYYY-MM-DD",
-    )
+    date_range = st.slider("Select Date Range", today - timedelta(days=1825), today,
+                           value=(today - timedelta(days=365), today), format="YYYY-MM-DD")
     start_date, end_date = map(pd.Timestamp, date_range)
 
-    # Risk-Free Rate
+    # Risk-Free Rate Input
     risk_free_rate = st.number_input("Risk-Free Rate (%)", value=2.0, step=0.1) / 100
 
-    # Fetch and Process Data
     if stocks:
-        st.write(f"### Selected Stocks: {', '.join(stocks)}")
         try:
             # Fetch stock data
             data = yf.download(stocks, start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))['Adj Close']
-            
             if data.empty:
                 st.error("No data found for the selected stocks and date range.")
             else:
-                # Calculate Returns and Excess Returns
-                returns = data.pct_change().dropna()
-                excess_returns = returns - risk_free_rate / 252
+                # Plot historical data
+                st.write("### Historical Price Data")
+                st.line_chart(data)
 
-                # Plot Holding Period Returns
-                st.write("### Holding Period Returns")
-                st.line_chart(returns)
+                # Calculate Returns
+                rets = data.pct_change().dropna()
 
-                # Plot Excess Returns
-                st.write("### Excess Returns")
-                st.line_chart(excess_returns)
+                # Risk-Return Map
+                st.write("### Risk-Return Map")
+                fig, ax = plt.subplots()
+                ax.scatter(rets.mean(), rets.std(), s=100, alpha=0.7)
+                for stock, x, y in zip(rets.columns, rets.mean(), rets.std()):
+                    ax.annotate(stock, (x, y), textcoords="offset points", xytext=(5, 5), ha='center')
+                ax.set(title="Risk-Return Map", xlabel="Expected Return", ylabel="Risk (Standard Deviation)")
+                st.pyplot(fig)
 
-                # Standard Deviation and Risk Premium
-                std_deviation = excess_returns.std()
-                mean_excess_returns = excess_returns.mean()
-                risk_premium = mean_excess_returns - risk_free_rate / 252
+                # Portfolio Optimization
+                port = rp.Portfolio(returns=rets)
+                port.assets_stats(method_mu='hist', method_cov='hist')
+                weights = port.optimization(model='Classic', rm='MV', obj='Sharpe', rf=risk_free_rate)
 
-                st.write("**Standard Deviation of Excess Returns**")
-                st.write(std_deviation)
-
-                st.write("**Risk Premium**")
-                st.write(risk_premium)
-
-                # Optimal Portfolio Calculation
-                cov_matrix = returns.cov()
-                weights = np.linalg.inv(cov_matrix) @ mean_excess_returns
-                weights /= weights.sum()  # Normalize weights
-
-                # Plot Optimal Portfolio Weights
+                # Optimal Portfolio Weights
                 st.write("### Optimal Portfolio Weights")
-                st.bar_chart(pd.DataFrame(weights, index=returns.columns, columns=["Weight"]))
+                fig, ax = plt.subplots()
+                rp.plot_pie(w=weights, title="Sharpe Ratio Portfolio", others=0.05, ax=ax)
+                st.pyplot(fig)
 
-                # Portfolio Statistics
-                portfolio_return = np.dot(weights, mean_excess_returns) * 252
-                portfolio_std = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
-                sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_std
-
-                st.write("### Portfolio Statistics")
-                stats_df = pd.DataFrame({
-                    "Metric": ["Expected Portfolio Return", "Portfolio Volatility (Risk)", "Sharpe Ratio"],
-                    "Value": [portfolio_return, portfolio_std, sharpe_ratio]
-                })
-
-                st.write(stats_df)
-
-                # Plot Portfolio Statistics as a bar chart
-                st.write("### Portfolio Statistics Chart")
-                st.bar_chart(stats_df.set_index('Metric')['Value'])
+                # Efficient Frontier
+                st.write("### Efficient Frontier")
+                frontier = port.efficient_frontier(model='Classic', rm='MV', points=50, rf=risk_free_rate)
+                fig, ax = plt.subplots()
+                rp.plot_frontier(w_frontier=frontier, mu=port.mu, cov=port.cov, returns=port.returns, rm='MV',
+                                 rf=risk_free_rate, marker='*', s=16, c='red', ax=ax)
+                st.pyplot(fig)
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
