@@ -315,6 +315,8 @@ with tabs[3]:
                 # Display historical data
                 st.write("### Historical Price Data")
                 st.line_chart(data)
+                # Calculate daily returns
+                returns = data.pct_change().dropna()
                 # Correlation Matrix Heatmap
                 correlation_matrix = returns.corr()
                 st.write("### Stock Price Correlation")
@@ -333,8 +335,6 @@ with tabs[3]:
                             ax.set_xlabel(stock_x)
                             ax.set_ylabel(stock_y)
                             st.pyplot(fig)
-                # Calculate daily returns
-                returns = data.pct_change().dropna()
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
                 fig, ax = plt.subplots()
