@@ -283,21 +283,21 @@ with tabs[2]:
 with tabs[3]:
     st.title("Optimal Risk Portfolio for Selected Stocks")
 
-    # Sidebar: Portfolio Settings
+    # Portfolio Settings
     symbols = sorted([
         "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS",
         "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK",
         "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA"
     ])
-    stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT", "GOOGL"])
+    stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
 
     # Date Range Slider
     today = date.today()
-    date_range = st.slider("Select Date Range", today - timedelta(days=1825), today,
+    date_range = st.slider("Select Date Range", today - timedelta(days=1825), today, 
                            value=(today - timedelta(days=365), today), format="YYYY-MM-DD")
     start_date, end_date = map(pd.Timestamp, date_range)
 
-    # Risk-Free Rate Input
+    # Risk-Free Rate
     risk_free_rate = st.number_input("Risk-Free Rate (%)", value=2.0, step=0.1) / 100
 
     if stocks:
@@ -307,14 +307,12 @@ with tabs[3]:
             if data.empty:
                 st.error("No data found for the selected stocks and date range.")
             else:
-                # Plot historical data
+                # Historical Data
                 st.write("### Historical Price Data")
                 st.line_chart(data)
 
-                # Calculate Returns
+                # Returns and Risk-Return Map
                 rets = data.pct_change().dropna()
-
-                # Risk-Return Map
                 st.write("### Risk-Return Map")
                 fig, ax = plt.subplots()
                 ax.scatter(rets.mean(), rets.std(), s=100, alpha=0.7)
@@ -341,83 +339,67 @@ with tabs[3]:
                 rp.plot_frontier(w_frontier=frontier, mu=port.mu, cov=port.cov, returns=port.returns, rm='MV',
                                  rf=risk_free_rate, marker='*', s=16, c='red', ax=ax)
                 st.pyplot(fig)
-
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
         st.warning("Please select at least one stock.")
-# Comparison
+
+# Comparison Tab
 with tabs[4]:
     st.header("Comparison")
     st.write("Compare stocks based on fundamental and technical analysis.")
 
-    # Function to fetch fundamental data
-    def get_fundamental_data(ticker):
+    def fetch_fundamental_data(ticker):
         try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
+            info = yf.Ticker(ticker).info
             return {
                 "Ticker": ticker,
-                "Market Cap (Billion)": info.get('marketCap', 0) / 1e9,
-                "Trailing P/E Ratio": info.get('trailingPE', 'N/A'),
-                "Forward P/E Ratio": info.get('forwardPE', 'N/A'),
-                "Price-to-Book Ratio": info.get('priceToBook', 'N/A'),
+                "Market Cap (B)": info.get('marketCap', 0) / 1e9,
+                "Trailing P/E": info.get('trailingPE', 'N/A'),
+                "Forward P/E": info.get('forwardPE', 'N/A'),
+                "P/B Ratio": info.get('priceToBook', 'N/A'),
                 "Dividend Yield (%)": info.get('dividendYield', 0) * 100,
                 "Earnings Growth (%)": info.get('earningsGrowth', 'N/A'),
                 "Revenue Growth (%)": info.get('revenueGrowth', 'N/A'),
-                "Debt-to-Equity Ratio": info.get('debtToEquity', 'N/A'),
-                "Free Cash Flow (Billion)": info.get('freeCashflow', 0) / 1e9,
+                "Debt/Equity Ratio": info.get('debtToEquity', 'N/A'),
+                "Free Cash Flow (B)": info.get('freeCashflow', 0) / 1e9,
             }
-        except Exception as e:
-            st.error(f"Error fetching data for {ticker}: {e}")
+        except Exception:
             return None
 
-    # Stock Selection
     available_tickers = [
         'AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'BRK.B',
         'KO', 'UNH', 'XOM', 'LLY', 'JPM', 'JNJ', 'V', 'PG', 'MA', 'AVGO', 'HD',
         'CVX', 'MRK', 'ABBV', 'COST', 'PEP', 'ADBE'
     ]
-    selected_tickers = st.multiselect(
-        "Select Stocks for Analysis (both Fundamental and Technical):",
-        available_tickers,
-        default=['AAPL', 'MSFT', 'TSLA']
-    )
+    selected_tickers = st.multiselect("Select Stocks for Analysis", available_tickers, default=['AAPL', 'MSFT'])
 
     if selected_tickers:
         # Fundamental Analysis
         st.subheader("Fundamental Analysis")
-        fundamental_data = [get_fundamental_data(ticker) for ticker in selected_tickers if get_fundamental_data(ticker)]
-        if fundamental_data:
-            st.dataframe(pd.DataFrame(fundamental_data), use_container_width=True)
+        fundamentals = [fetch_fundamental_data(t) for t in selected_tickers]
+        valid_data = [f for f in fundamentals if f]
+        if valid_data:
+            st.dataframe(pd.DataFrame(valid_data), use_container_width=True)
         else:
             st.warning("No valid fundamental data available.")
 
         # Technical Analysis
         st.subheader("Technical Analysis")
-        today, min_date = date.today(), date.today() - timedelta(days=365*5)
-        date_range = st.slider("Select Date Range", min_date, today, (today - timedelta(days=365), today))
-        sdate, edate = date_range
+        date_range = st.slider("Select Date Range", today - timedelta(days=1825), today, 
+                               value=(today - timedelta(days=365), today))
+        sdate, edate = map(str, date_range)
 
-        # Fetch historical data
         data = yf.download(selected_tickers, start=sdate, end=edate, interval="1d", auto_adjust=True)
         if not data.empty:
             for ticker in selected_tickers:
                 st.write(f"### {ticker}")
-
-                # Fetch stock's closing price
-                stock_data = data['Close'][ticker]
-                df = pd.DataFrame(stock_data).rename(columns={ticker: 'Close'})
-
-                # Add moving averages
-                df['SMA 50'] = stock_data.rolling(window=50).mean()
-                df['SMA 100'] = stock_data.rolling(window=100).mean()
-
-                # Plot stock price with moving averages
+                df = pd.DataFrame({'Close': data['Close'][ticker]})
+                df['SMA 50'] = df['Close'].rolling(window=50).mean()
+                df['SMA 100'] = df['Close'].rolling(window=100).mean()
                 st.line_chart(df)
-
         else:
-            st.error("No historical data available for the selected period.")
+            st.error("No historical data available.")
     else:
         st.warning("Please select at least one stock.")
 # News
