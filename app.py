@@ -19,6 +19,7 @@ import yfinance as yf
 import datetime
 from datetime import date, timedelta
 from datetime import datetime
+from textblob import TextBlob  # Import TextBlob for sentiment analysis
 ad.user_cache_dir = lambda *args: "/tmp"
 #Specify title and logo for the webpage.
 st.set_page_config(
