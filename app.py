@@ -284,9 +284,9 @@ with tabs[3]:
 
     # Portfolio Settings
     symbols = sorted([
-        "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS",
-        "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK",
-        "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA"
+        "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
+        "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK", "NVDA",
+        "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA", "TSLA",
     ])
     stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
 
@@ -323,10 +323,10 @@ with tabs[3]:
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
                 fig, ax = plt.subplots()
-                ax.scatter(returns.mean(), returns.std(), s=100, alpha=0.7, edgecolors="k")
-                for stock, mean, std in zip(returns.columns, returns.mean(), returns.std()):
-                    ax.annotate(stock, (mean, std), textcoords="offset points", xytext=(5, 5), ha='center')
-                ax.set(title="Risk-Return Map", xlabel="Expected Returns (Mean)", ylabel="Risk (Standard Deviation)")
+                ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k")
+                for stock, std, mean in zip(returns.columns, returns.std(), returns.mean()):
+                    ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(5,5), ha='center')
+                ax.set(title="Risk-Return Map", xlabel="Risk (Standard Deviation)", ylabel="Expected Returns (Mean)")
                 st.pyplot(fig)
 
                 # Correlation Matrix Heatmap
