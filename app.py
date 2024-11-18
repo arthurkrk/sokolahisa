@@ -322,9 +322,9 @@ with tabs[3]:
 
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(8, 6))
                 ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k")
-                for stock, mean, std in zip(returns.columns, returns.mean(), returns.std()):
+                for stock, std, mean in zip(returns.columns, returns.std(), returns.mean()):
                     ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(5, 5), ha='center')
                 ax.set(title="Risk-Return Map", xlabel="Risk (Standard Deviation)", ylabel="Expected Returns (Mean)")
                 st.pyplot(fig)
@@ -332,7 +332,7 @@ with tabs[3]:
                 # Correlation Matrix Heatmap
                 correlation_matrix = returns.corr()
                 st.write("### Stock Price Correlation")
-                fig, ax = plt.subplots(figsize=(10, 8))
+                fig, ax = plt.subplots(figsize=(8, 6))
                 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
                 ax.set_title("Correlation Matrix", fontsize=16)
                 st.pyplot(fig)
