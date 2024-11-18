@@ -1,13 +1,12 @@
 streamlit
+matplotlib
 pandas
 numpy
-matplotlib
 seaborn
-plotly
 yfinance
-riskfolio-lib
+plotly
 requests
-beautifulsoup4
 feedparser
-sqlite3
+bs4
+riskfolio-lib
 appdirs
