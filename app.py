@@ -415,9 +415,9 @@ with tabs[4]:
         st.warning("Please select at least one stock.")
 # News
 with tabs[5]:
-    st.header("News")
+    st.header("📡 News")
     st.write("Stay updated with the latest news on your selected stock.")
-    # Function to extract news from Google News RSS
+
     def extract_news_from_google_rss(ticker):
         """Fetch news articles for a given stock ticker using Google News RSS."""
         url = f"https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en"
@@ -428,21 +428,17 @@ with tabs[5]:
             news_articles.append({"title": entry.title, "url": entry.link, "date": published_date})
         return news_articles
 
-    # Function to fetch and preprocess text
-    def fetch_article_content(url):
-        """Fetch article content using BeautifulSoup."""
-        try:
-            response = requests.get(url)
-            soup = BeautifulSoup(response.content, "html.parser")
-            headline = soup.title.string if soup.title else "No headline"
-            paragraphs = soup.find_all("p")
-            content = " ".join([para.get_text() for para in paragraphs])
-            return headline, content
-        except Exception as e:
-            return None, None
+    def analyze_sentiment(text):
+        """Analyze the sentiment of the text using TextBlob."""
+        analysis = TextBlob(text)
+        sentiment = analysis.sentiment.polarity
+        if sentiment > 0:
+            return "Positive", sentiment
+        elif sentiment < 0:
+            return "Negative", sentiment
+        else:
+            return "Neutral", sentiment
 
-    # App layout and styling
-    st.title("News Fetcher for Selected Stock")
     ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")  # Unique key
 
     if ticker_symbol_news:
@@ -450,17 +446,30 @@ with tabs[5]:
             # Fetch news for the given ticker automatically
             news = extract_news_from_google_rss(ticker_symbol_news)
             if news:
-                st.subheader(f"Latest News for {ticker_symbol_news.upper()}")
+                st.subheader(f"📰 Latest News for {ticker_symbol_news.upper()}")
                 for article in news:
-                    st.write(f"**{article['title']}**")
-                    st.write(f"[Read more]({article['url']}) - {article['date'].strftime('%Y-%m-%d %H:%M:%S')}")
-                    st.write("---")
+                    # Analyze sentiment for the article title
+                    sentiment, score = analyze_sentiment(article['title'])
+                    
+                    # Display article details with sentiment
+                    st.markdown(
+                        f"""
+                        <div style="border:1px solid #ddd; padding:10px; border-radius:5px; margin-bottom:10px;">
+                            <h4>{article['title']}</h4>
+                            <p><em>Published on: {article['date'].strftime('%Y-%m-%d %H:%M:%S')}</em></p>
+                            <p><strong>Sentiment:</strong> {sentiment} (Score: {score:.2f})</p>
+                            <a href="{article['url']}" target="_blank">Read more</a>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
             else:
                 st.warning("No news articles found for this ticker.")
         except Exception as e:
             st.error(f"An error occurred while fetching news: {e}")
     else:
-        st.info("Enter a stock ticker above to fetch the latest news.")    
+        st.info("Enter a stock ticker above to fetch the latest news.")
+   
 # Technical Analysis
 with tabs[6]:
     st.title("Contact Us")
