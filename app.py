@@ -246,14 +246,18 @@ with tabs[2]:
 
                 # Show recommendation summary
                 if show_recommendation:
-                    st.write("### Recommendation Summary")
-                    st.write(f"Total Indicators: {total_indicators}")
-                    st.write(f"Buy Signals: {buy_signals}")
-                    st.write(f"Sell Signals: {total_indicators - buy_signals}")
-                    if buy_signals > total_indicators / 2:
-                        st.success("**Recommendation: Buy**")
+                    if total_indicators == 0:
+                        st.warning("No technical indicators selected. Please select at least one indicator to see the recommendation.")
                     else:
-                        st.warning("**Recommendation: Sell**")
+                        st.write("### Recommendation Summary")
+                        st.write(f"Total Indicators: {total_indicators}")
+                        st.write(f"Buy Signals: {buy_signals}")
+                        st.write(f"Sell Signals: {total_indicators - buy_signals}")
+        
+                        if buy_signals > total_indicators / 2:
+                            st.success("**Recommendation: Buy**")
+                        else:
+                            st.warning("**Recommendation: Sell**")
 
                 # Update layout to display multiple y-axes for different indicators
                 fig.update_layout(
