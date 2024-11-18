@@ -416,7 +416,7 @@ with tabs[4]:
         st.warning("Please select at least one stock.")
 # News
 with tabs[5]:
-    st.header("📡 News")
+    st.header("📰 Stock News")
     st.write("Stay updated with the latest news on your selected stock.")
 
     def extract_news_from_google_rss(ticker):
@@ -434,31 +434,33 @@ with tabs[5]:
         analysis = TextBlob(text)
         sentiment = analysis.sentiment.polarity
         if sentiment > 0:
-            return "Positive", sentiment
+            return "Positive", "green", sentiment
         elif sentiment < 0:
-            return "Negative", sentiment
+            return "Negative", "red", sentiment
         else:
-            return "Neutral", sentiment
+            return "Neutral", "grey", sentiment
 
-    ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")  # Unique key
+    # App layout and user input
+    st.title("📡 News and Sentiment Analysis for Stocks")
+    ticker_symbol_news = st.text_input("Enter stock ticker (e.g., AAPL, MSFT):", key="ticker_news")
 
     if ticker_symbol_news:
         try:
-            # Fetch news for the given ticker automatically
+            # Fetch news for the given ticker
             news = extract_news_from_google_rss(ticker_symbol_news)
             if news:
-                st.subheader(f"📰 Latest News for {ticker_symbol_news.upper()}")
+                st.subheader(f"Latest News and Sentiment for {ticker_symbol_news.upper()}")
                 for article in news:
                     # Analyze sentiment for the article title
-                    sentiment, score = analyze_sentiment(article['title'])
-                    
+                    sentiment, color, score = analyze_sentiment(article['title'])
+
                     # Display article details with sentiment
                     st.markdown(
                         f"""
                         <div style="border:1px solid #ddd; padding:10px; border-radius:5px; margin-bottom:10px;">
                             <h4>{article['title']}</h4>
                             <p><em>Published on: {article['date'].strftime('%Y-%m-%d %H:%M:%S')}</em></p>
-                            <p><strong>Sentiment:</strong> {sentiment} (Score: {score:.2f})</p>
+                            <p style="color:{color};"><strong>Sentiment:</strong> {sentiment} (Score: {score:.2f})</p>
                             <a href="{article['url']}" target="_blank">Read more</a>
                         </div>
                         """,
