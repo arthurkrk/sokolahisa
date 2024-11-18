@@ -323,7 +323,7 @@ with tabs[3]:
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
                 fig, ax = plt.subplots()
-                ax.scatter(returns.mean(), returns.std(), s=100, alpha=0.7, edgecolors="k")
+                ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k")
                 for stock, mean, std in zip(returns.columns, returns.mean(), returns.std()):
                     ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(5, 5), ha='center')
                 ax.set(title="Risk-Return Map", xlabel="Risk (Standard Deviation)", ylabel="Expected Returns (Mean)")
