@@ -11,5 +11,4 @@ bs4
 riskfolio-lib
 appdirs
 TextBlob
-matplotlib.ticker
 FormatStrFormatter
