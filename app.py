@@ -347,7 +347,7 @@ with tabs[3]:
                 ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
                 cb = plt.colorbar(sc)
                 cb.set_label('Expected Returns')
-                cb.ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f')
+                cb.ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
                 st.pyplot(fig)
 
                 # Correlation Matrix Heatmap
