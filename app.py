@@ -332,6 +332,11 @@ with tabs[3]:
 
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
+
+                plt.rcParams['font.family'] = 'Tahoma' 
+                plt.rcParams['axes.facecolor'] = '#EAEAF2'  
+                plt.rcParams['figure.facecolor'] = '#FFFFFF'
+                
                 fig, ax = plt.subplots(figsize=(6,4))
                 sc = ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k", c = returns.mean(), cmap = 'coolwarm', marker = 'o')
                 for stock, std, mean in zip(returns.columns, returns.std(), returns.mean()):
