@@ -337,10 +337,10 @@ with tabs[3]:
                 plt.rcParams['axes.facecolor'] = '#EAEAF2'  
                 plt.rcParams['figure.facecolor'] = '#FFFFFF'
                 
-                fig, ax = plt.subplots(figsize=(4,3))
+                fig, ax = plt.subplots(figsize=(8,6))
                 sc = ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k", c = returns.mean(), cmap = 'coolwarm', marker = 'o')
                 for stock, std, mean in zip(returns.columns, returns.std(), returns.mean()):
-                    ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(3,3), ha='center')
+                    ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(2,2), ha='left')
                 ax.set(title="Risk-Return Map", xlabel="Risk (Standard Deviation)", ylabel="Expected Returns (Mean)")
 
                 cb = plt.colorbar(sc)
