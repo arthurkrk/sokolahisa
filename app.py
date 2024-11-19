@@ -343,18 +343,19 @@ with tabs[3]:
                 for stock, std, mean in zip(returns.columns, returns.std(), returns.mean()):
                     ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(1,1), ha='right')
                 ax.set(title="Risk-Return Map", xlabel="Risk (Standard Deviation)", ylabel="Expected Returns (Mean)")
-                ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f')) 
-                ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+                ax.xaxis.set_major_formatter(FormatStrFormatter('%.4f')) 
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
                 cb = plt.colorbar(sc)
                 cb.set_label('Expected Returns')
+                cb.ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f')
                 st.pyplot(fig)
 
                 # Correlation Matrix Heatmap
                 correlation_matrix = returns.corr()
                 st.write("### Stock Price Correlation")
                 fig, ax = plt.subplots(figsize=(6, 4))
-                sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
-                ax.set_title("Correlation Matrix", fontsize=12)
+                sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".4f", linewidths=0.5, ax=ax)
+                ax.set_title("Correlation Matrix", fontsize=8)
                 st.pyplot(fig)
 
                 # Pairwise Scatter Plots
