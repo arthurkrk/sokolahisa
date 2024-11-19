@@ -352,6 +352,8 @@ with tabs[3]:
 
                 # Correlation Matrix Heatmap
                 correlation_matrix = returns.corr()
+                sns.set(font_scale = 1)
+                
                 st.write("### Stock Price Correlation")
                 fig, ax = plt.subplots(figsize=(6, 4))
                 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".4f", linewidths=0.5, ax=ax)
