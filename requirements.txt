@@ -11,3 +11,4 @@ bs4
 riskfolio-lib
 appdirs
 TextBlob
+FormatStrFormatter
