@@ -45,6 +45,9 @@ def render_footer():
     </div>
     """, unsafe_allow_html=True)
 
+st.markdown( """ 
+            <style> .stPlotlyChart { max-width: 600px; } </style> """, 
+            unsafe_allow_html=True )
 # Page Title
 render_header("S&P 500 Features Analysis")
 # Create tabs
@@ -285,6 +288,8 @@ with tabs[2]:
             st.error(f"Failed to retrieve data for {ticker_symbol}. Error: {e}")
 # Optimal Risk Portfolio
 with tabs[3]:
+    
+    
     st.title("Optimal Risk Portfolio for Selected Stocks")
 
     # Portfolio Settings
@@ -328,9 +333,9 @@ with tabs[3]:
                 # Risk-Return Map
                 st.write("### Risk-Return Map")
                 fig, ax = plt.subplots(figsize=(6,4))
-                ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k", c = returns.mean(), cmap = 'viridis')
+                sc = ax.scatter(returns.std(), returns.mean(), s=100, alpha=0.7, edgecolors="k", c = returns.mean(), cmap = 'coolwarm', marker = 'o')
                 for stock, std, mean in zip(returns.columns, returns.std(), returns.mean()):
-                    ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(5,5), ha='center')
+                    ax.annotate(stock, (std, mean), textcoords="offset points", xytext=(3,3), ha='center')
                 ax.set(title="Risk-Return Map", xlabel="Risk (Standard Deviation)", ylabel="Expected Returns (Mean)")
 
                 cb = plt.colorbar(sc)
