@@ -20,7 +20,7 @@ import datetime
 from datetime import date, timedelta
 from datetime import datetime
 from matplotlib.ticker import FormatStrFormatter
-from textblob import TextBlob  # Import TextBlob for sentiment analysis
+from textblob import TextBlob  
 ad.user_cache_dir = lambda *args: "/tmp"
 #Specify title and logo for the webpage.
 st.set_page_config(
