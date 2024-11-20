@@ -296,7 +296,7 @@ with tabs[3]:
     # Portfolio Settings
     sp500 = yf.Ticker("^GSPC") 
     sp500_tickers = sorted([ticker for ticker in sp500.tickers])
-    input stocks = st.multiselect("Select Stocks for Portfolio", sp500_tickers, default=["AAPL", "MSFT"])
+    stocks = st.multiselect("Select Stocks for Portfolio", sp500_tickers, default=["AAPL", "MSFT"])
     
     #symbols = sorted([
     #    "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
