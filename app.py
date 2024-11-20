@@ -293,17 +293,12 @@ with tabs[3]:
     
     st.title("Optimal Risk Portfolio for Selected Stocks")
 
-    # Portfolio Settings
-    sp500 = yf.Ticker("^GSPC") 
-    sp500_tickers = sorted([ticker for ticker in sp500.tickers])
-    stocks = st.multiselect("Select Stocks for Portfolio", sp500_tickers, default=["AAPL", "MSFT"])
-    
-    #symbols = sorted([
-    #    "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
-    #   "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK", "NVDA",
-    #    "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA", "TSLA",
-    #])
-    #stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
+    symbols = sorted([
+        "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
+        "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK", "NVDA",
+        "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA", "TSLA",
+    ])
+    stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
 
     # Date Range Slider
     today = date.today()
