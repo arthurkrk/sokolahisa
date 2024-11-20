@@ -201,7 +201,7 @@ with tabs[2]:
     st.write("### Select Indicators")
     indicators = {
         "SMA_0_50": st.checkbox("SMA (0-50)", key="show_sma_0_50"),
-        "SMA_50_100": st.checkbox("SMA (50-100)", key="show_sma_50_100"),
+        "SMA_50_200": st.checkbox("SMA (50-200)", key="show_sma_50_200"),
         "RSI": st.checkbox("Relative Strength Index (RSI)", key="show_rsi"),
         "MACD": st.checkbox("Moving Average Convergence Divergence (MACD)", key="show_macd"),
         "VWAP": st.checkbox("Volume Weighted Average Price (VWAP)", key="show_vwap"),
@@ -245,11 +245,11 @@ with tabs[2]:
                         buy_signals += 1
                     total_indicators += 1
 
-                if indicators["SMA_50_100"]:
-                    sma_50_100 = st.slider("SMA (50-100) Period", 50, 100, 75, key="sma_50_100_period")
-                    data['SMA_50_100'] = data['Close'].rolling(window=sma_50_100).mean()
-                    fig.add_trace(go.Scatter(x=data.index, y=data['SMA_50_100'], mode='lines', name="SMA (50-100)"))
-                    if data['Close'].iloc[-1] > data['SMA_50_100'].iloc[-1]:
+                if indicators["SMA_50_200"]:
+                    sma_50_200 = st.slider("SMA (50-200) Period", 50, 200, 75, key="sma_50_200_period")
+                    data['SMA_50_200'] = data['Close'].rolling(window=sma_50_200).mean()
+                    fig.add_trace(go.Scatter(x=data.index, y=data['SMA_50_200'], mode='lines', name="SMA (50-200)"))
+                    if data['Close'].iloc[-1] > data['SMA_50_200'].iloc[-1]:
                         buy_signals += 1
                     total_indicators += 1
 
@@ -271,7 +271,7 @@ with tabs[2]:
                 # Moving Average Convergence Divergence (MACD)
                 if indicators["MACD"]:
                     short_span = st.slider("MACD Short Span", 5, 50, 12, key="macd_short")
-                    long_span = st.slider("MACD Long Span", 5, 100, 26, key="macd_long")
+                    long_span = st.slider("MACD Long Span", 5, 200, 26, key="macd_long")
                     signal_span = st.slider("MACD Signal Span", 5, 20, 9, key="macd_signal")
                     data['MACD'] = data['Close'].ewm(span=short_span).mean() - data['Close'].ewm(span=long_span).mean()
                     data['Signal Line'] = data['MACD'].ewm(span=signal_span).mean()
@@ -327,6 +327,7 @@ with tabs[2]:
 
         except Exception as e:
             st.error(f"Failed to retrieve data for {ticker_symbol}. Error: {e}") 
+
 # Optimal Risk Portfolio
 with tabs[3]:
     
