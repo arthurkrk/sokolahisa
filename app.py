@@ -11,6 +11,11 @@ import feedparser
 import seaborn as sns
 from bs4 import BeautifulSoup
 import riskfolio as rp
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 # Specify title and logo for the webpage.
 # Set up your web app
 import streamlit as st
