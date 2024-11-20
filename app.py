@@ -90,8 +90,8 @@ with tabs[1]:
     sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
     sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
     
-    ticker = st.selectbox("Stock Ticker:", sp500_tickers, default = ["AAPL"])
-    
+    ticker = st.selectbox("Stock Ticker:", sp500_tickers, index=sp500_tickers.index("AAPL"))
+
     def analyze_stock_fundamentals(ticker):
         """Perform fundamental analysis for the given stock ticker."""
         try:
