@@ -415,7 +415,7 @@ with tabs[3]:
             st.error(f"An error occurred: {e}")
 # Comparison Tab
 with tabs[4]:
-    st.header("Comparison")
+    st.header("Stocks Comparison")
     st.write("Compare stocks based on fundamental and technical analysis.")
 
     sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" # Read the table from Wikipedia 
