@@ -79,9 +79,16 @@ with tabs[0]:
     st.write("With a good perspective on history, we can have a better understanding of the past and present, and thus a clear vision of the future. ~ Carlos Slim Helu.")
 # Fundamental Analysis
 with tabs[1]:
-    st.header("Fundamental Analysis")
-    st.write("Analyze a firm's prospects using fundamental analysis. Enter a stock ticker below:")
-    ticker = st.text_input("Stock Ticker (e.g., AAPL, MSFT):", value="AAPL")
+    #st.header("Fundamental Analysis")
+    #st.write("Analyze a firm's prospects using fundamental analysis. Enter a stock ticker below:")
+    #ticker = st.text_input("Stock Ticker (e.g., AAPL, MSFT):", value="AAPL")
+    sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" # Read the table from Wikipedia 
+    sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
+    sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
+    st.header("Fundamental Analysis") 
+    st.write("Analyze a firm's prospects using fundamental analysis. Select a stock ticker below:") # Ticker select box 
+    ticker = st.selectbox("Stock Ticker:", sp500_tickers, index=sp500_tickers.index("AAPL"))
+    
     def analyze_stock_fundamentals(ticker):
         """Perform fundamental analysis for the given stock ticker."""
         try:
@@ -152,10 +159,19 @@ with tabs[1]:
         analyze_stock_fundamentals(ticker)      
 # Technical Analysis
 with tabs[2]:
-    st.header("Stock Information")
-    st.write("Analyze and visualize stock performance with indicators and recommendations.")
+    #st.header("Stock Information")
+    #st.write("Analyze and visualize stock performance with indicators and recommendations.")
     # Ticker input
-    ticker_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+    #ticker_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
+
+    sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" # Read the table from Wikipedia 
+    sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
+    sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
+    
+    st.header("Stock Information") 
+    st.write("Analyze and visualize stock performance with indicators and recommendations.") # Ticker select box 
+    ticker_symbol = st.selectbox("Select Stock Ticker", sp500_tickers, index=sp500_tickers.index("AAPL"))
+    
     # Date slicer
     st.write("### Select Date Range")
     today = date.today()
@@ -304,7 +320,6 @@ with tabs[2]:
 # Optimal Risk Portfolio
 with tabs[3]:
     
-    
     st.title("Optimal Risk Portfolio for Selected Stocks")
     sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" 
     # Read the table from Wikipedia 
@@ -398,6 +413,10 @@ with tabs[4]:
     st.header("Comparison")
     st.write("Compare stocks based on fundamental and technical analysis.")
 
+    sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" # Read the table from Wikipedia 
+    sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
+    sp500_tickers = sorted(sp500_table['Symbol'].tolist())
+    
     def fetch_fundamental_data(ticker):
         try:
             info = yf.Ticker(ticker).info
@@ -416,13 +435,15 @@ with tabs[4]:
         except Exception:
             return None
 
-    available_tickers = [
-        'AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'BRK.B',
-        'KO', 'UNH', 'XOM', 'LLY', 'JPM', 'JNJ', 'V', 'PG', 'MA', 'AVGO', 'HD',
-        'CVX', 'MRK', 'ABBV', 'COST', 'PEP', 'ADBE'
-    ]
+    #available_tickers = [
+    #    'AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN', 'META', 'NFLX', 'NVDA', 'BRK.B',
+    #    'KO', 'UNH', 'XOM', 'LLY', 'JPM', 'JNJ', 'V', 'PG', 'MA', 'AVGO', 'HD',
+    #    'CVX', 'MRK', 'ABBV', 'COST', 'PEP', 'ADBE'
+    #]
+    available_tickers = sp500_tickers # Create multi-select input 
+    
     selected_tickers = st.multiselect("Select Stocks for Analysis", available_tickers, default=['AAPL', 'MSFT'])
-
+    
     if selected_tickers:
         # Fundamental Analysis
         st.subheader("Fundamental Analysis")
@@ -554,11 +575,17 @@ def stock_price_prediction_with_validation(ticker, prediction_days=30):
         st.error(f"An error occurred: {e}")
 
 with tabs[5]:
+
+    sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" # Read the table from Wikipedia 
+    sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
+    sp500_tickers = sorted(sp500_table['Symbol'].tolist())
+    
     st.header("📈 Stock Price Predictions")
     st.write("Use machine learning to predict stock prices for the next few days.")
     
     # User input: Stock ticker and prediction days
-    ticker_for_prediction = st.text_input("Enter stock ticker for prediction:", key="prediction_ticker", value="AAPL")
+    ticker_for_prediction = st.selectbox("Select stock ticker for prediction:", sp500_tickers, index=sp500_tickers.index("AAPL"))
+    #ticker_for_prediction = st.text_input("Enter stock ticker for prediction:", key="prediction_ticker", value="AAPL")
     prediction_days = st.slider("Prediction Days", 5, 60, 30)
     
     # Prediction button
