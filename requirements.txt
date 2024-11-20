@@ -11,3 +11,6 @@ bs4
 riskfolio-lib
 appdirs
 TextBlob
+beautifulsoup4
+tensorflow
+scikit-learn
