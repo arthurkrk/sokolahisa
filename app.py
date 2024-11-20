@@ -292,13 +292,19 @@ with tabs[3]:
     
     
     st.title("Optimal Risk Portfolio for Selected Stocks")
-
-    symbols = sorted([
-        "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
-        "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK", "NVDA",
-        "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA", "TSLA",
-    ])
-    stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
+    sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" 
+    # Read the table from Wikipedia 
+    sp500_table = pd.read_html(sp500_url, header=0)[0] 
+    # Get the symbols and sort them 
+    sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
+    # Create multi-select input 
+    stocks = st.multiselect("Select Stocks for Portfolio:", sp500_tickers, default=["AAPL", "MSFT"])
+    #symbols = sorted([
+    #    "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
+    #    "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK", "NVDA",
+    #    "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA", "TSLA",
+    #])
+    #stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
 
     # Date Range Slider
     today = date.today()
