@@ -68,8 +68,8 @@ tabs = st.tabs([
     "📧Contacts"
 ])
 
-st.experimental_singleton.clear() 
-st.experimental_memo.clear()
+st.cache_data.clear()
+st.cache_resource.clear()
 
 # Home
 with tabs[0]:
