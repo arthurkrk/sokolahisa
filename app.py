@@ -67,7 +67,10 @@ tabs = st.tabs([
     "🌐News",
     "📧Contacts"
 ])
-#source: https://emojidb.org/invest-emojis
+
+st.experimental_singleton.clear() 
+st.experimental_memo.clear()
+
 # Home
 with tabs[0]:
     st.header("Home")
@@ -87,7 +90,7 @@ with tabs[1]:
     sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
     sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
     
-    ticker = st.multiselect("Stock Ticker:", sp500_tickers, default = ["AAPL"])
+    ticker = st.selectbox("Stock Ticker:", sp500_tickers, default = ["AAPL"])
     
     def analyze_stock_fundamentals(ticker):
         """Perform fundamental analysis for the given stock ticker."""
@@ -286,9 +289,9 @@ with tabs[2]:
                         st.write(f"Sell Signals: {total_indicators - buy_signals}")
         
                         if buy_signals > total_indicators / 2:
-                            st.success("**Recommendation: Buy**")
+                            st.success("**Recommendation: BUY**")
                         else:
-                            st.warning("**Recommendation: Sell**")
+                            st.warning("**Recommendation: SELL**")
 
                 # Update layout to display multiple y-axes for different indicators
                 fig.update_layout(
@@ -324,12 +327,6 @@ with tabs[3]:
     sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
     # Create multi-select input 
     stocks = st.multiselect("Select Stocks for Portfolio:", sp500_tickers, default=["AAPL", "MSFT"])
-    #symbols = sorted([
-    #    "MMM", "AXP", "AMGN", "AAPL", "BA", "CAT", "CVX", "CSCO", "KO", "DIS", "GOOGL",
-    #    "DOW", "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "MCD", "MRK", "NVDA",
-    #    "MSFT", "NKE", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT", "WBA", "TSLA",
-    #])
-    #stocks = st.multiselect("Select Stocks for Portfolio", symbols, default=["AAPL", "MSFT"])
 
     # Date Range Slider
     today = date.today()
@@ -342,7 +339,7 @@ with tabs[3]:
     )
 
     # Risk-Free Rate Input
-    risk_free_rate = st.number_input("Risk-Free Rate (%)", value=2.0, step=0.1) / 100
+    risk_free_rate = st.number_input("Risk-Free Rate (%):", value=2.0, step=0.1) / 100
 
     if stocks:
         try:
