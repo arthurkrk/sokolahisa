@@ -87,7 +87,7 @@ with tabs[1]:
     sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
     sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
     
-    ticker = st.multiselect("Stock Ticker:", sp500_tickers, index=sp500_tickers.index("AAPL"))
+    ticker = st.multiselect("Stock Ticker:", sp500_tickers, default = ["AAPL"])
     
     def analyze_stock_fundamentals(ticker):
         """Perform fundamental analysis for the given stock ticker."""
@@ -161,15 +161,13 @@ with tabs[1]:
 with tabs[2]:
     st.header("Stock Information")
     st.write("Analyze and visualize stock performance with indicators and recommendations.")
-    # Ticker input
-    #ticker_symbol = st.text_input("Enter Stock Ticker (e.g., AAPL, MSFT):", "AAPL", key="ticker")
-
+   
     sp500_url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies" # Read the table from Wikipedia 
     sp500_table = pd.read_html(sp500_url, header=0)[0] # Get the symbols and sort them 
     sp500_tickers = sorted(sp500_table['Symbol'].tolist()) 
     
-    ticker_symbol = st.selectbox("Select Stock Ticker", sp500_tickers, index=sp500_tickers.index("AAPL"))
-    
+    #ticker_symbol = st.selectbox("Select Stock Ticker", sp500_tickers, index=sp500_tickers.index("AAPL"))
+    ticker_symbol = st.selectbox("Select Stock Ticker", sp500_tickers, default = ['AAPL"])
     # Date slicer
     st.write("### Select Date Range")
     today = date.today()
