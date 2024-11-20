@@ -52,7 +52,16 @@ st.markdown( """
 # Page Title
 render_header("S&P 500 Features Analysis")
 # Create tabs
-tabs = st.tabs(["🏠Home","🔎Fundamental Analysis", "📈Technical Analysis", "🚩Risk Portfolio","⚖️Comparison", "🌐News", "📧Contacts"])
+tabs = st.tabs([
+    "🏠Home",
+    "🔎Fundamental Analysis",
+    "📈Technical Analysis",
+    "🚩Risk Portfolio",
+    "⚖️Comparison",
+    "📈Predictions",
+    "🌐News",
+    "📧Contacts"
+])
 #source: https://emojidb.org/invest-emojis
 # Home
 with tabs[0]:
@@ -437,8 +446,121 @@ with tabs[4]:
             st.error("No historical data available.")
     else:
         st.warning("Please select at least one stock.")
-# News
+# Predictions Tab (Index 5)
+
+# Function for stock price prediction using LSTM
+def stock_price_prediction_with_validation(ticker, prediction_days=30):
+    try:
+        # Fetch data
+        stock = yf.Ticker(ticker)
+        data = stock.history(period="5y")  # Get 5 years of historical data
+        if data.empty:
+            st.error("No data available for prediction.")
+            return
+
+        # Preprocessing: Scale data
+        st.write(f"### Stock Price Prediction for {ticker.upper()}")
+        close_prices = data['Close'].values.reshape(-1, 1)
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaled_data = scaler.fit_transform(close_prices)
+
+        # Split into train and test datasets
+        train_size = int(len(scaled_data) * 0.8)
+        train_data, test_data = scaled_data[:train_size], scaled_data[train_size:]
+
+        # Create sequences for training
+        def create_sequences(data, seq_length=60):
+            X, y = [], []
+            for i in range(seq_length, len(data)):
+                X.append(data[i - seq_length:i, 0])
+                y.append(data[i, 0])
+            return np.array(X), np.array(y)
+
+        X_train, y_train = create_sequences(train_data)
+        X_test, y_test = create_sequences(test_data)
+
+        # Reshape for LSTM input
+        X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
+        # Build LSTM model
+        model = Sequential([
+            LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)),
+            Dropout(0.2),
+            LSTM(units=50, return_sequences=False),
+            Dropout(0.2),
+            Dense(units=1)  # Prediction layer
+        ])
+        model.compile(optimizer='adam', loss='mean_squared_error')
+
+        # Train model
+        history = model.fit(X_train, y_train, epochs=10, batch_size=32, verbose=1)
+
+        # Evaluate model
+        train_predictions = model.predict(X_train)
+        train_rmse = np.sqrt(mean_squared_error(y_train, train_predictions))
+        test_predictions = model.predict(X_test)
+        test_rmse = np.sqrt(mean_squared_error(y_test, test_predictions))
+        accuracy = 100 - (test_rmse / np.mean(scaler.inverse_transform(test_data)) * 100)
+
+        st.write(f"**Model Evaluation:**")
+        st.write(f"Training RMSE: {train_rmse:.2f}")
+        st.write(f"Testing RMSE: {test_rmse:.2f}")
+        st.write(f"Prediction Accuracy: {accuracy:.2f}%")
+
+        # Inverse scale test predictions
+        test_predictions_rescaled = scaler.inverse_transform(test_predictions)
+        actual_prices_rescaled = scaler.inverse_transform(y_test.reshape(-1, 1))
+
+        # Prepare future predictions
+        recent_data = scaled_data[-60:]  # Last 60 data points for future predictions
+        future_predictions = []
+        for _ in range(prediction_days):
+            input_data = recent_data[-60:].reshape(1, -1, 1)
+            future_price = model.predict(input_data, verbose=0)
+            future_predictions.append(future_price[0, 0])
+            recent_data = np.append(recent_data, future_price[0, 0])
+
+        # Scale back future predictions
+        future_predictions_rescaled = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
+        future_dates = pd.date_range(data.index[-1], periods=prediction_days + 1, freq='B')[1:]
+        future_prediction_df = pd.DataFrame({
+            'Date': future_dates,
+            'Predicted Price': future_predictions_rescaled.flatten()
+        })
+
+        # Plot test predictions vs actual
+        st.write("### Test Predictions vs Actual Prices")
+        test_df = pd.DataFrame({
+            'Actual': actual_prices_rescaled.flatten(),
+            'Predicted': test_predictions_rescaled.flatten()
+        }, index=data.index[-len(actual_prices_rescaled):])
+        st.line_chart(test_df)
+
+        # Plot future predictions
+        st.write("### Future Price Predictions")
+        st.line_chart(future_prediction_df.set_index('Date'))
+
+        # Display table of predicted prices
+        st.write("### Predicted Prices for Future Days")
+        st.table(future_prediction_df)
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
 with tabs[5]:
+    st.header("📈 Stock Price Predictions")
+    st.write("Use machine learning to predict stock prices for the next few days.")
+    
+    # User input: Stock ticker and prediction days
+    ticker_for_prediction = st.text_input("Enter stock ticker for prediction:", key="prediction_ticker", value="AAPL")
+    prediction_days = st.slider("Prediction Days", 5, 60, 30)
+    
+    # Prediction button
+    if st.button("Predict"):
+        stock_price_prediction_with_validation(ticker_for_prediction, prediction_days)
+# News
+with tabs[6]:
     st.header("📰 Stock News")
     st.write("Stay updated with the latest news on your selected stock.")
 
@@ -497,7 +619,7 @@ with tabs[5]:
         st.info("Enter a stock ticker above to fetch the latest news.")
    
 # Technical Analysis
-with tabs[6]:
+with tabs[7]:
     st.title("Contact Us")
     # University Information
     st.subheader("International University of Japan")
