@@ -471,9 +471,8 @@ with tabs[4]:
             st.error("No historical data available.")
     else:
         st.warning("Please select at least one stock.")
-# Predictions Tab (Index 5)
 
-# Function for stock price prediction using LSTM
+# Function for stock price prediction using LSTM with improved evaluation
 def stock_price_prediction_with_validation(ticker, prediction_days=30):
     try:
         # Fetch data
@@ -523,19 +522,26 @@ def stock_price_prediction_with_validation(ticker, prediction_days=30):
 
         # Evaluate model
         train_predictions = model.predict(X_train)
-        train_rmse = np.sqrt(mean_squared_error(y_train, train_predictions))
         test_predictions = model.predict(X_test)
+
+        # Inverse scale predictions
+        train_predictions_rescaled = scaler.inverse_transform(train_predictions)
+        test_predictions_rescaled = scaler.inverse_transform(test_predictions)
+        actual_prices_rescaled = scaler.inverse_transform(y_test.reshape(-1, 1))
+
+        # Metrics
+        train_rmse = np.sqrt(mean_squared_error(y_train, train_predictions))
         test_rmse = np.sqrt(mean_squared_error(y_test, test_predictions))
-        accuracy = 100 - (test_rmse / np.mean(scaler.inverse_transform(test_data)) * 100)
+        mape = np.mean(np.abs((actual_prices_rescaled - test_predictions_rescaled) / actual_prices_rescaled)) * 100
+        directional_accuracy = np.mean(
+            np.sign(np.diff(actual_prices_rescaled.flatten())) == np.sign(np.diff(test_predictions_rescaled.flatten()))
+        ) * 100
 
         st.write(f"**Model Evaluation:**")
         st.write(f"Training RMSE: {train_rmse:.2f}")
         st.write(f"Testing RMSE: {test_rmse:.2f}")
-        st.write(f"Prediction Accuracy: {accuracy:.2f}%")
-
-        # Inverse scale test predictions
-        test_predictions_rescaled = scaler.inverse_transform(test_predictions)
-        actual_prices_rescaled = scaler.inverse_transform(y_test.reshape(-1, 1))
+        st.write(f"MAPE: {mape:.2f}%")
+        st.write(f"Directional Accuracy: {directional_accuracy:.2f}%")
 
         # Prepare future predictions
         recent_data = scaled_data[-60:]  # Last 60 data points for future predictions
@@ -573,6 +579,7 @@ def stock_price_prediction_with_validation(ticker, prediction_days=30):
     except Exception as e:
         st.error(f"An error occurred: {e}")
 
+# Tab for Predictions
 with tabs[5]:
     st.header("📈 Stock Price Predictions")
     st.write("Use machine learning to predict stock prices for the next few days.")
@@ -583,12 +590,12 @@ with tabs[5]:
     
     # User input: Stock ticker and prediction days
     ticker_for_prediction = st.selectbox("Select stock ticker for prediction:", sp500_tickers, index=sp500_tickers.index("AAPL"))
-    #ticker_for_prediction = st.text_input("Enter stock ticker for prediction:", key="prediction_ticker", value="AAPL")
     prediction_days = st.slider("Prediction Days", 5, 60, 30)
     
     # Prediction button
     if st.button("Predict"):
         stock_price_prediction_with_validation(ticker_for_prediction, prediction_days)
+
 # News
 with tabs[6]:
     st.header("📰 Stock News")
