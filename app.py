@@ -52,7 +52,7 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 st.markdown( """ 
-            <style> .stPlotlyChart { max-width: 300px; } </style> """, 
+            <style> .stPlotlyChart { max-width: 100px; } </style> """, 
             unsafe_allow_html=True )
 # Page Title
 render_header("S&P 500 Features Analysis")
